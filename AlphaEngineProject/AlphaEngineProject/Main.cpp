@@ -13,26 +13,27 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     int gGameRunning = 1;
 
     AESysInit(hInstance, nCmdShow, 1600, 900, 1, 60, true, NULL);
-    AESysSetWindowTitle("Pong"); 
+    AESysSetWindowTitle("Pong");
+    AEFrameRateControllerInit(60);
 
-    PongGameInit();
+    PongGame* pongGame = new PongGame(); 
 
     // Game Loop
     while (gGameRunning)
     {
-        AESysFrameStart(); 
+        AESysFrameStart();
 
-        PongGameUpdate((f32)AEFrameRateControllerGetFrameTime());
+        pongGame->Update((f32)AEFrameRateControllerGetFrameTime());
+        pongGame->Draw();
 
-        PongGameDraw();
-
-        AESysFrameEnd(); 
+        AESysFrameEnd();
 
         if (AEInputCheckTriggered(AEVK_ESCAPE) || 0 == AESysDoesWindowExist())
             gGameRunning = 0;
     }
 
-    PongGameExit();
+    delete pongGame;
+    pongGame = nullptr;
 
     AESysExit();
 

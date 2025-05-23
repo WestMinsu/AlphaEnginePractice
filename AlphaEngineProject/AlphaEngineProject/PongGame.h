@@ -2,16 +2,22 @@
 #include <crtdbg.h>
 #include "AEEngine.h"
 
-extern f64 g_elapsedTime;
-extern bool g_showTime;
-extern s8 font; 
+class PongGame
+{
+public:
 
-void PongGameInit(void);
+    PongGame();
+   
+    ~PongGame();
 
-void PongGameUpdate(f32 dt); 
+    void Initialize();
 
-void PongGameDraw(void);
+    void Update(f32 dt);
 
-void PongGameExit(void);
+    void Draw();
 
-void PongGameReset(void);
+private:
+    f64 m_elapsedTime;       
+    bool m_showTime;         
+    s8 m_font;               
+};
