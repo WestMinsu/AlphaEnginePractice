@@ -70,12 +70,12 @@ void PongGame::Draw()
     const char* initialMessage = "Press SPACE key to start...";
 
     f32 w, h;
-    f32 current_text_scale;
+    f32 currentTextScale;
 
     if (m_showTime)
     {
         sprintf_s(textBuffer, sizeof(textBuffer), "Time: %.1f s", m_elapsedTime);
-        current_text_scale = 0.8f;
+        currentTextScale = 0.8f;
 
         //draw player2
         DrawRect(-700.0f, 0.0f, 50.0f, 200.0f, 1.0f, 1.0f, 0.0f, 1.0f);
@@ -89,21 +89,21 @@ void PongGame::Draw()
     else
     {
         strcpy_s(textBuffer, sizeof(textBuffer), initialMessage);
-        current_text_scale = 1.2f;
+        currentTextScale = 1.2f;
     }
 
-    AEGfxGetPrintSize(m_font, textBuffer, current_text_scale, &w, &h);
+    AEGfxGetPrintSize(m_font, textBuffer, currentTextScale, &w, &h);
 
-    f32 text_x_pos = -w / 2;
-    f32 text_y_pos;
+    f32 textXPosition = -w / 2;
+    f32 textYPosition;
     if (m_showTime) {
-        text_y_pos = 0.9f - h;
+        textYPosition = 0.9f - h;
     }
     else {
-        text_y_pos = -h / 2;
+        textYPosition = -h / 2;
     }
 
-    AEGfxPrint(m_font, textBuffer, text_x_pos, text_y_pos, current_text_scale, 1, 1, 1, 1);
+    AEGfxPrint(m_font, textBuffer, textXPosition, textYPosition, currentTextScale, 1, 1, 1, 1);
 }
 
 void PongGame::DrawRect(f32 x, f32 y, f32 w, f32 h, float r, float g, float b, float a)
