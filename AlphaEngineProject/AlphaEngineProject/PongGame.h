@@ -20,8 +20,9 @@ private:
     f64 m_elapsedTime;       
     bool m_showTime;         
     s8 m_font;     
-    AEGfxVertexList* m_paddleMesh;
+    AEGfxVertexList* m_mesh;
 
     AEMtx33 m_player1PaddleTransform;
     AEMtx33 m_player2PaddleTransform;
+    AEMtx33 m_ballTransform;
 };
