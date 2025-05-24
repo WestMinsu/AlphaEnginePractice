@@ -39,40 +39,6 @@ void PongGame::Initialize()
 {
     m_elapsedTime = 0.0;
     m_showTime = false;
-
-    AEMtx33 playerScale = { 0 };
-    AEMtx33Scale(&playerScale, PADDLE_WIDTH, PADDLE_HEIGHT);
-
-    AEMtx33 playerRotate = { 0 };
-    AEMtx33Rot(&playerRotate, 0);
-
-    AEMtx33 player1Translate = { 0 };
-    AEMtx33Trans(&player1Translate, -700.0f, 0.0f);
-
-    m_player1PaddleTransform = { 0 };
-    AEMtx33Concat(&m_player1PaddleTransform, &playerRotate, &playerScale);
-    AEMtx33Concat(&m_player1PaddleTransform, &player1Translate, &m_player1PaddleTransform);
-
-    AEMtx33 player2Translate = { 0 };
-    AEMtx33Trans(&player2Translate, 700.0f, 0.0f);
-
-    m_player2PaddleTransform = { 0 };
-    AEMtx33Concat(&m_player2PaddleTransform, &playerRotate, &playerScale);
-    AEMtx33Concat(&m_player2PaddleTransform, &player2Translate, &m_player2PaddleTransform);
-
-
-    AEMtx33 ballScale = { 0 };
-    AEMtx33Scale(&ballScale, 50, 50);
-
-    AEMtx33 ballRotate = { 0 };
-    AEMtx33Rot(&ballRotate, 0);
-
-    AEMtx33 ballTranslate = { 0 };
-    AEMtx33Trans(&ballTranslate, 0.0f, 0.0f);
-
-    m_ballTransform = { 0 };
-    AEMtx33Concat(&m_ballTransform, &ballRotate, &ballScale);
-    AEMtx33Concat(&m_ballTransform, &ballTranslate, &m_ballTransform);
 }
 
 void PongGame::Update(f32 dt)
@@ -111,22 +77,14 @@ void PongGame::Draw()
         sprintf_s(textBuffer, sizeof(textBuffer), "Time: %.1f s", m_elapsedTime);
         current_text_scale = 0.8f;
 
-        AEGfxSetRenderMode(AE_GFX_RM_COLOR);
-
-        //draw player1
-        AEGfxSetColorToMultiply(1.0f, 1.0f, 0.0f, 1.0f);
-        AEGfxSetTransform(m_player1PaddleTransform.m);
-        AEGfxMeshDraw(m_mesh, AE_GFX_MDM_TRIANGLES);
-
         //draw player2
-        AEGfxSetColorToMultiply(0.0f, 1.0f, 1.0f, 1.0f);
-        AEGfxSetTransform(m_player2PaddleTransform.m);
-        AEGfxMeshDraw(m_mesh, AE_GFX_MDM_TRIANGLES);
-
+        DrawRect(-700.0f, 0.0f, 50.0f, 200.0f, 1.0f, 1.0f, 0.0f, 1.0f);
+       
+        //draw player2
+        DrawRect(700.0f, 0.0f, 50.0f, 200.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+    
         //draw ball
-        AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
-        AEGfxSetTransform(m_ballTransform.m);
-        AEGfxMeshDraw(m_mesh, AE_GFX_MDM_TRIANGLES);
+        DrawRect(0.0f, 0.0f, 50.0f, 50.0f);
     }
     else
     {
@@ -146,4 +104,26 @@ void PongGame::Draw()
     }
 
     AEGfxPrint(m_font, textBuffer, text_x_pos, text_y_pos, current_text_scale, 1, 1, 1, 1);
+}
+
+void PongGame::DrawRect(f32 x, f32 y, f32 w, f32 h, float r, float g, float b, float a)
+{
+    AEMtx33 scale = { 0 };
+    AEMtx33Scale(&scale, w, h);
+
+    AEMtx33 rotate = { 0 };
+    AEMtx33Rot(&rotate, 0);
+
+    AEMtx33 translate = { 0 };
+    AEMtx33Trans(&translate, x, y);
+
+    AEMtx33 transform = { 0 };
+    AEMtx33Concat(&transform, &rotate, &scale);
+    AEMtx33Concat(&transform, &translate, &transform);
+
+    AEGfxSetRenderMode(AE_GFX_RM_COLOR);
+
+    AEGfxSetColorToMultiply(r, g, b, a);
+    AEGfxSetTransform(transform.m);
+    AEGfxMeshDraw(m_mesh, AE_GFX_MDM_TRIANGLES);
 }
