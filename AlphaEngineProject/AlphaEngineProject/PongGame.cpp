@@ -1,10 +1,11 @@
 #include "PongGame.h"
-#include <cstdio> 
+#include <string>
+#include <sstream>
 
-const static float kPaddleWidth = 50.0f;
-const static float kPaddleHeight = 200.0f;
-const static float kBallSize = 40.0f;
-const static int kInvalidFontHandle = -1;
+const float kPaddleWidth = 50.0f;
+const float kPaddleHeight = 200.0f;
+const float kBallSize = 40.0f;
+const int kInvalidFontHandle = -1;
 
 PongGame::PongGame()
     : m_elapsedTime(0.0),
@@ -66,7 +67,6 @@ void PongGame::Draw()
     AEGfxSetBackgroundColor(0.1f, 0.1f, 0.1f);
 
     char textBuffer[256];
-    const char* initialMessage = "Press SPACE key to start...";
 
     f32 w, h;
     f32 currentTextScale;
@@ -87,6 +87,7 @@ void PongGame::Draw()
     }
     else
     {
+        const char* initialMessage = "Press SPACE key to start...";
         strcpy_s(textBuffer, sizeof(textBuffer), initialMessage);
         currentTextScale = 1.2f;
     }
