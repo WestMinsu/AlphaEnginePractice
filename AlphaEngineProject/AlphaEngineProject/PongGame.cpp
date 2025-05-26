@@ -4,11 +4,12 @@
 const static float kPaddleWidth = 50.0f;
 const static float kPaddleHeight = 200.0f;
 const static float kBallSize = 40.0f;
+const static int kInvalidFontHandle = -1;
 
 PongGame::PongGame()
     : m_elapsedTime(0.0),
     m_showTime(false),
-    m_font(-1)
+    m_font(kInvalidFontHandle)
 {
     m_font = AEGfxCreateFont("Assets/liberation-mono.ttf", 72.f);
     
