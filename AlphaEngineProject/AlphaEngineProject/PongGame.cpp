@@ -1,10 +1,9 @@
 #include "PongGame.h"
 #include <cstdio> 
 
-#define PADDLE_WIDTH  50.0f
-#define PADDLE_HEIGHT 200.0f
-#define BALL_SIZE     40.0f
-
+const static float kPaddleWidth = 50.0f;
+const static float kPaddleHeight = 200.0f;
+const static float kBallSize = 40.0f;
 
 PongGame::PongGame()
     : m_elapsedTime(0.0),
@@ -24,7 +23,6 @@ PongGame::PongGame()
 
     Initialize();
 }
-
 
 PongGame::~PongGame()
 {
@@ -77,11 +75,11 @@ void PongGame::Draw()
         sprintf_s(textBuffer, sizeof(textBuffer), "Time: %.1f s", m_elapsedTime);
         currentTextScale = 0.8f;
 
-        //draw player2
-        DrawRect(-700.0f, 0.0f, 50.0f, 200.0f, 1.0f, 1.0f, 0.0f, 1.0f);
+        //draw player1
+        DrawRect(-700.0f, 0.0f, kPaddleWidth, kPaddleHeight, 1.0f, 1.0f, 0.0f, 1.0f);
        
         //draw player2
-        DrawRect(700.0f, 0.0f, 50.0f, 200.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+        DrawRect(700.0f, 0.0f, kPaddleWidth, kPaddleHeight, 0.0f, 1.0f, 1.0f, 1.0f);
     
         //draw ball
         DrawRect(0.0f, 0.0f, 50.0f, 50.0f);
