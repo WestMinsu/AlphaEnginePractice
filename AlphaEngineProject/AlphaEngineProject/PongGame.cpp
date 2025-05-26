@@ -1,5 +1,6 @@
 #include "PongGame.h"
 #include <string>
+#include <iomanip>
 #include <sstream>
 
 const float kPaddleWidth = 50.0f;
@@ -66,14 +67,15 @@ void PongGame::Draw()
 {
     AEGfxSetBackgroundColor(0.1f, 0.1f, 0.1f);
 
-    char textBuffer[256];
-
     f32 w, h;
+    std::string displayText;
     f32 currentTextScale;
 
     if (m_showTime)
     {
-        sprintf_s(textBuffer, sizeof(textBuffer), "Time: %.1f s", m_elapsedTime);
+        std::stringstream ss;
+        ss << "Time: " << std::fixed << std::setprecision(1) << m_elapsedTime << "s";
+        displayText = ss.str();
         currentTextScale = 0.8f;
 
         //draw player1
@@ -87,12 +89,11 @@ void PongGame::Draw()
     }
     else
     {
-        const char* initialMessage = "Press SPACE key to start...";
-        strcpy_s(textBuffer, sizeof(textBuffer), initialMessage);
+        displayText = "Press SPACE key to start...";
         currentTextScale = 1.2f;
     }
 
-    AEGfxGetPrintSize(m_font, textBuffer, currentTextScale, &w, &h);
+    AEGfxGetPrintSize(m_font, displayText.c_str(), currentTextScale, &w, &h);
 
     f32 textXPosition = -w / 2;
     f32 textYPosition;
@@ -103,7 +104,7 @@ void PongGame::Draw()
         textYPosition = -h / 2;
     }
 
-    AEGfxPrint(m_font, textBuffer, textXPosition, textYPosition, currentTextScale, 1, 1, 1, 1);
+    AEGfxPrint(m_font, displayText.c_str(), textXPosition, textYPosition, currentTextScale, 1, 1, 1, 1);
 }
 
 void PongGame::DrawRect(f32 x, f32 y, f32 w, f32 h, float r, float g, float b, float a)
