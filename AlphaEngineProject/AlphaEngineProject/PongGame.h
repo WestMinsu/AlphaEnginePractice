@@ -24,3 +24,8 @@ private:
     s8 m_font;     
     AEGfxVertexList* m_mesh;
 };
+
+typedef struct playerPosition {
+    f32 x;
+    f32 y;
+}playerPosition;

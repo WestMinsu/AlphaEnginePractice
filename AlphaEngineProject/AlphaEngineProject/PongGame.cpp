@@ -79,10 +79,12 @@ void PongGame::Draw()
         currentTextScale = 0.8f;
 
         //draw player1
-        DrawRect(-700.0f, 0.0f, kPaddleWidth, kPaddleHeight, 1.0f, 1.0f, 0.0f, 1.0f);
+        playerPosition p1 = { -700.0f, 0.0f };
+        DrawRect(p1.x, p1.y, kPaddleWidth, kPaddleHeight, 1.0f, 1.0f, 0.0f, 1.0f);
        
         //draw player2
-        DrawRect(700.0f, 0.0f, kPaddleWidth, kPaddleHeight, 0.0f, 1.0f, 1.0f, 1.0f);
+        playerPosition p2 = { 700.0f, 0.0f };
+        DrawRect(p2.x, p2.y, kPaddleWidth, kPaddleHeight, 0.0f, 1.0f, 1.0f, 1.0f);
     
         //draw ball
         DrawRect(0.0f, 0.0f, 50.0f, 50.0f);
