@@ -37,4 +37,9 @@ private:
     // for generate random number
     std::mt19937 m_randomEngine;
     std::uniform_real_distribution<f32> m_velocityDist;
+
+    AELineSegment2 m_topWall;
+    AELineSegment2 m_bottomWall;
+    AELineSegment2 m_leftWall;
+    AELineSegment2 m_rightWall;
 };

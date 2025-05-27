@@ -1,4 +1,5 @@
-#include "PongGame.h" 
+#include "PongGame.h"
+#include "Constants.h"
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     _In_opt_ HINSTANCE hPrevInstance,
@@ -12,10 +13,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     int gGameRunning = 1;
 
-    AESysInit(hInstance, nCmdShow, 1600, 900, 1, 60, true, NULL);
+    AESysInit(hInstance, nCmdShow, kGameWindowWidth, kGameWindowHeight, 1, 60, true, NULL);
     AESysSetWindowTitle("Pong");
     AEFrameRateControllerInit(60);
-
     PongGame* pongGame = new PongGame(); 
 
     // Game Loop

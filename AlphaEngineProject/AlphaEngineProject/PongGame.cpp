@@ -4,12 +4,7 @@
 #include <iomanip>
 #include <sstream>
 #include <iostream>
-       
-
-const float kPaddleWidth = 50.0f;
-const float kPaddleHeight = 200.0f;
-const float kBallRadius = 50.0f;
-const int kInvalidFontHandle = -1;
+#include "Constants.h"
 
 PongGame::PongGame()
     : m_elapsedTime(0.0),
@@ -29,8 +24,27 @@ PongGame::PongGame()
     AEGfxVertexAdd(-0.5f, 0.5f, 0xFFFFFFFF, 0.0f, 1.0f);
     m_mesh = AEGfxMeshEnd();
 
-    m_pTex = AEGfxTextureLoad("Assets/PlanetTexture.png");
+    m_topWall.mP0 = { -kHalfWindowWidth, kHalfWindowHeight };
+    m_topWall.mP1 = { kHalfWindowWidth, kHalfWindowHeight };
+    m_topWall.mN = { 0.0f, -1.0f }; 
+    m_topWall.mNdotP0 = AEVec2DotProduct(&m_topWall.mN, &m_topWall.mP0);
 
+    m_bottomWall.mP0 = { -kHalfWindowWidth, -kHalfWindowHeight };
+    m_bottomWall.mP1 = { kHalfWindowWidth, -kHalfWindowHeight };
+    m_bottomWall.mN = { 0.0f, 1.0f };
+    m_bottomWall.mNdotP0 = AEVec2DotProduct(&m_bottomWall.mN, &m_bottomWall.mP0);
+
+    m_leftWall.mP0 = { -kHalfWindowWidth, -kHalfWindowHeight };
+    m_leftWall.mP1 = { -kHalfWindowWidth, kHalfWindowHeight };
+    m_leftWall.mN = { 1.0f, 0.0f };
+    m_leftWall.mNdotP0 = AEVec2DotProduct(&m_leftWall.mN, &m_leftWall.mP0);
+
+    m_rightWall.mP0 = { kHalfWindowWidth, -kHalfWindowHeight };
+    m_rightWall.mP1 = { kHalfWindowWidth, kHalfWindowHeight };
+    m_rightWall.mN = { -1.0f, 0.0f };
+    m_rightWall.mNdotP0 = AEVec2DotProduct(&m_rightWall.mN, &m_rightWall.mP0);
+
+    m_pTex = AEGfxTextureLoad("Assets/PlanetTexture.png");
 
     Initialize();
 }
@@ -85,9 +99,60 @@ void PongGame::Update(f32 dt)
 
     if (m_showTime)
     {
-        m_ballPosition.x += m_ballVelocity.x * dt;
-        m_ballPosition.y += m_ballVelocity.y * dt;
         m_elapsedTime += dt;
+        AEVec2 currentBallPos = m_ballPosition; 
+        AEVec2 nextBallPos;
+        nextBallPos.x = m_ballPosition.x + m_ballVelocity.x * dt;
+        nextBallPos.y = m_ballPosition.y + m_ballVelocity.y * dt;
+        AEVec2 intersectionPoint;
+        f32 collisionTime;
+
+        collisionTime = AEAnimatedCircleToStaticLineSegment(&currentBallPos, &nextBallPos, kBallRadius / 2.0f, &m_topWall, &intersectionPoint);
+        if (collisionTime >= 0.0f)
+        {
+            f32 dotProduct = AEVec2DotProduct(&m_ballVelocity, &m_topWall.mN);
+            m_ballVelocity.x -= 2.0f * dotProduct * m_topWall.mN.x;
+            m_ballVelocity.y -= 2.0f * dotProduct * m_topWall.mN.y;
+
+            m_ballPosition.x = currentBallPos.x + m_ballVelocity.x * dt * collisionTime;
+            m_ballPosition.y = currentBallPos.y + m_ballVelocity.y * dt * collisionTime;
+        }
+
+        collisionTime = AEAnimatedCircleToStaticLineSegment(&currentBallPos, &nextBallPos, kBallRadius / 2.0f, &m_bottomWall, &intersectionPoint);
+        if (collisionTime >= 0.0f)
+        {
+            f32 dotProduct = AEVec2DotProduct(&m_ballVelocity, &m_bottomWall.mN);
+            m_ballVelocity.x -= 2.0f * dotProduct * m_bottomWall.mN.x;
+            m_ballVelocity.y -= 2.0f * dotProduct * m_bottomWall.mN.y;
+
+            m_ballPosition.x = currentBallPos.x + m_ballVelocity.x * dt * collisionTime;
+            m_ballPosition.y = currentBallPos.y + m_ballVelocity.y * dt * collisionTime;
+        }
+
+        collisionTime = AEAnimatedCircleToStaticLineSegment(&currentBallPos, &nextBallPos, kBallRadius / 2.0f, &m_leftWall, &intersectionPoint);
+        if (collisionTime >= 0.0f)
+        {
+            f32 dotProduct = AEVec2DotProduct(&m_ballVelocity, &m_leftWall.mN);
+            m_ballVelocity.x -= 2.0f * dotProduct * m_leftWall.mN.x;
+            m_ballVelocity.y -= 2.0f * dotProduct * m_leftWall.mN.y;
+
+            m_ballPosition.x = currentBallPos.x + m_ballVelocity.x * dt * collisionTime;
+            m_ballPosition.y = currentBallPos.y + m_ballVelocity.y * dt * collisionTime;
+        }
+
+        collisionTime = AEAnimatedCircleToStaticLineSegment(&currentBallPos, &nextBallPos, kBallRadius / 2.0f, &m_rightWall, &intersectionPoint);
+        if (collisionTime >= 0.0f)
+        {
+            f32 dotProduct = AEVec2DotProduct(&m_ballVelocity, &m_rightWall.mN);
+            m_ballVelocity.x -= 2.0f * dotProduct * m_rightWall.mN.x;
+            m_ballVelocity.y -= 2.0f * dotProduct * m_rightWall.mN.y;
+
+            m_ballPosition.x = currentBallPos.x + m_ballVelocity.x * dt * collisionTime;
+            m_ballPosition.y = currentBallPos.y + m_ballVelocity.y * dt * collisionTime;
+        }
+
+         m_ballPosition.x += m_ballVelocity.x * dt;
+         m_ballPosition.y += m_ballVelocity.y * dt;
     }
 }
 
