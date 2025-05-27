@@ -16,16 +16,17 @@ public:
 
     void Draw();
 
-    void DrawRect(f32 x, f32 y, f32 w, f32 h, float r = 1.0f, float g = 1.0f, float b = 1.0f, float a = 1.0f);
+    void DrawRect(f32 x, f32 y, f32 w, f32 h, float r = 1.0f, float g = 1.0f, float b = 1.0f, float a = 1.0f, AEGfxTexture* pTex = nullptr);
 
 private:
     f64 m_elapsedTime;       
     bool m_showTime;         
     s8 m_font;     
     AEGfxVertexList* m_mesh;
+    AEGfxTexture* pTex;
 };
 
-typedef struct playerPosition {
+typedef struct Position {
     f32 x;
     f32 y;
 }playerPosition;
