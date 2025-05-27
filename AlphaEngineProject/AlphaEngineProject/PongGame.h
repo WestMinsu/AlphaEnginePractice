@@ -1,6 +1,9 @@
 #pragma once
 #include <crtdbg.h>
 #include "AEEngine.h"
+#include <random> 
+#include <chrono>       
+#include <cmath> 
 
 class PongGame
 {
@@ -23,10 +26,15 @@ private:
     bool m_showTime;         
     s8 m_font;     
     AEGfxVertexList* m_mesh;
-    AEGfxTexture* pTex;
-};
+    AEGfxTexture* m_pTex;
 
-typedef struct Position {
-    f32 x;
-    f32 y;
-}playerPosition;
+    AEVec2 m_player1Position;
+    AEVec2 m_player2Position;
+    AEVec2 m_ballPosition;
+    AEVec2 m_ballVelocity;
+    f32 m_ballSpeed;
+
+    // for generate random number
+    std::mt19937 m_randomEngine;
+    std::uniform_real_distribution<f32> m_velocityDist;
+};

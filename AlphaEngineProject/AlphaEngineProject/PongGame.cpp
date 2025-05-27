@@ -1,7 +1,10 @@
 #include "PongGame.h"
+#include "AEUtil.h"
 #include <string>
 #include <iomanip>
 #include <sstream>
+#include <iostream>
+       
 
 const float kPaddleWidth = 50.0f;
 const float kPaddleHeight = 200.0f;
@@ -11,9 +14,11 @@ const int kInvalidFontHandle = -1;
 PongGame::PongGame()
     : m_elapsedTime(0.0),
     m_showTime(false),
-    m_font(kInvalidFontHandle)
+    m_font(kInvalidFontHandle),
+    m_randomEngine(std::random_device{}()),
+    m_velocityDist(-1.0f, 1.0f)
 {
-    m_font = AEGfxCreateFont("Assets/liberation-mono.ttf", 72.f);
+    m_font = AEGfxCreateFont("Assets/liberation-mono.ttf", 72);
     
     AEGfxMeshStart();
     AEGfxVertexAdd(-0.5f, -0.5f, 0xFFFFFFFF, 0.0f, 0.0f);
@@ -24,7 +29,9 @@ PongGame::PongGame()
     AEGfxVertexAdd(-0.5f, 0.5f, 0xFFFFFFFF, 0.0f, 1.0f);
     m_mesh = AEGfxMeshEnd();
 
-    pTex = AEGfxTextureLoad("Assets/PlanetTexture.png");
+    m_pTex = AEGfxTextureLoad("Assets/PlanetTexture.png");
+
+
     Initialize();
 }
 
@@ -34,13 +41,31 @@ PongGame::~PongGame()
     {
         AEGfxDestroyFont(m_font);
         m_font = kInvalidFontHandle;
+        AEGfxMeshFree(m_mesh);
+        AEGfxTextureUnload(m_pTex);
     }
 }
 
 void PongGame::Initialize()
 {
+    m_player1Position = { -700.f, 0.f };
+    m_player2Position = { 700.f, 0.f };
+    m_ballPosition = { 0.f, 0.f };
+
     m_elapsedTime = 0.0;
     m_showTime = false;
+    m_ballSpeed = 500.0f; 
+
+    f32 randomX = m_velocityDist(m_randomEngine);
+    f32 randomY = m_velocityDist(m_randomEngine);
+
+    m_ballVelocity.x = m_velocityDist(m_randomEngine);
+    m_ballVelocity.y = m_velocityDist(m_randomEngine);
+
+    AEVec2Normalize(&m_ballVelocity, &m_ballVelocity);
+
+    m_ballVelocity.x *= m_ballSpeed;
+    m_ballVelocity.y *= m_ballSpeed;
 }
 
 void PongGame::Update(f32 dt)
@@ -60,6 +85,8 @@ void PongGame::Update(f32 dt)
 
     if (m_showTime)
     {
+        m_ballPosition.x += m_ballVelocity.x * dt;
+        m_ballPosition.y += m_ballVelocity.y * dt;
         m_elapsedTime += dt;
     }
 }
@@ -80,20 +107,18 @@ void PongGame::Draw()
         currentTextScale = 0.8f;
 
         //draw player1
-        Position player1Position = { -700.f, 0.f };
-        DrawRect(player1Position.x, player1Position.y, kPaddleWidth, kPaddleHeight, 1.0f, 1.0f, 0.0f, 1.0f);
+        DrawRect(m_player1Position.x, m_player1Position.y, kPaddleWidth, kPaddleHeight, 1.0f, 1.0f, 0.0f, 1.0f);
        
         //draw player2
-        Position player2Position = { 700.f, 0.f };
-        DrawRect(player2Position.x, player2Position.y, kPaddleWidth, kPaddleHeight, 0.0f, 1.0f, 1.0f, 1.0f);
+        DrawRect(m_player2Position.x, m_player2Position.y, kPaddleWidth, kPaddleHeight, 0.0f, 1.0f, 1.0f, 1.0f);
     
         //draw ball
         AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
         AEGfxSetBlendMode(AE_GFX_BM_BLEND);
         AEGfxSetTransparency(1.0f);
-        AEGfxTextureSet(pTex, 0, 0);
-        Position ballPosition = { 0.f, 0.f };
-        DrawRect(ballPosition.x, ballPosition.y, kBallRadius, kBallRadius, 1.0f, 1.0f, 1.0f, 1.0f, pTex);
+        AEGfxTextureSet(m_pTex, 0, 0);
+        //std::cout << m_ballPosition.x << " " << m_ballPosition.y << std::endl;
+        DrawRect(m_ballPosition.x, m_ballPosition.y, kBallRadius, kBallRadius, 1.0f, 1.0f, 1.0f, 1.0f, m_pTex);
     }
     else
     {
