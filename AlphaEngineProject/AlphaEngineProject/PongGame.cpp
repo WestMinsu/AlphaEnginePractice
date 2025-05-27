@@ -97,6 +97,56 @@ void PongGame::Update(f32 dt)
         Initialize();
     }
 
+    float p1LeftX = m_player1Position.x - kPaddleWidth / 2.0f;
+    float p1RightX = m_player1Position.x + kPaddleWidth / 2.0f;
+    float p1TopY = m_player1Position.y + kPaddleHeight / 2.0f;
+    float p1BottomY = m_player1Position.y - kPaddleHeight / 2.0f;
+
+    m_player1PaddleLeftEdge.mP0 = { p1LeftX, p1BottomY };
+    m_player1PaddleLeftEdge.mP1 = { p1LeftX, p1TopY };
+    m_player1PaddleLeftEdge.mN = { -1.0f, 0.0f };
+    m_player1PaddleLeftEdge.mNdotP0 = AEVec2DotProduct(&m_player1PaddleLeftEdge.mN, &m_player1PaddleLeftEdge.mP0);
+
+    m_player1PaddleRightEdge.mP0 = { p1RightX, p1BottomY };
+    m_player1PaddleRightEdge.mP1 = { p1RightX, p1TopY };
+    m_player1PaddleRightEdge.mN = { 1.0f, 0.0f };
+    m_player1PaddleRightEdge.mNdotP0 = AEVec2DotProduct(&m_player1PaddleRightEdge.mN, &m_player1PaddleRightEdge.mP0);
+
+    m_player1PaddleTopEdge.mP0 = { p1LeftX, p1TopY };
+    m_player1PaddleTopEdge.mP1 = { p1RightX, p1TopY };
+    m_player1PaddleTopEdge.mN = { 0.0f, 1.0f };
+    m_player1PaddleTopEdge.mNdotP0 = AEVec2DotProduct(&m_player1PaddleTopEdge.mN, &m_player1PaddleTopEdge.mP0);
+
+    m_player1PaddleBottomEdge.mP0 = { p1LeftX, p1BottomY };
+    m_player1PaddleBottomEdge.mP1 = { p1RightX, p1BottomY };
+    m_player1PaddleBottomEdge.mN = { 0.0f, -1.0f };
+    m_player1PaddleBottomEdge.mNdotP0 = AEVec2DotProduct(&m_player1PaddleBottomEdge.mN, &m_player1PaddleBottomEdge.mP0);
+
+    float p2LeftX = m_player2Position.x - kPaddleWidth / 2.0f;
+    float p2RightX = m_player2Position.x + kPaddleWidth / 2.0f;
+    float p2TopY = m_player2Position.y + kPaddleHeight / 2.0f;
+    float p2BottomY = m_player2Position.y - kPaddleHeight / 2.0f;
+
+    m_player2PaddleLeftEdge.mP0 = { p2LeftX, p2BottomY };
+    m_player2PaddleLeftEdge.mP1 = { p2LeftX, p2TopY };
+    m_player2PaddleLeftEdge.mN = { -1.0f, 0.0f };
+    m_player2PaddleLeftEdge.mNdotP0 = AEVec2DotProduct(&m_player2PaddleLeftEdge.mN, &m_player2PaddleLeftEdge.mP0);
+
+    m_player2PaddleRightEdge.mP0 = { p2RightX, p2BottomY };
+    m_player2PaddleRightEdge.mP1 = { p2RightX, p2TopY };
+    m_player2PaddleRightEdge.mN = { 1.0f, 0.0f };
+    m_player2PaddleRightEdge.mNdotP0 = AEVec2DotProduct(&m_player2PaddleRightEdge.mN, &m_player2PaddleRightEdge.mP0);
+
+    m_player2PaddleTopEdge.mP0 = { p2LeftX, p2TopY };
+    m_player2PaddleTopEdge.mP1 = { p2RightX, p2TopY };
+    m_player2PaddleTopEdge.mN = { 0.0f, 1.0f };
+    m_player2PaddleTopEdge.mNdotP0 = AEVec2DotProduct(&m_player2PaddleTopEdge.mN, &m_player2PaddleTopEdge.mP0);
+
+    m_player2PaddleBottomEdge.mP0 = { p2LeftX, p2BottomY };
+    m_player2PaddleBottomEdge.mP1 = { p2RightX, p2BottomY };
+    m_player2PaddleBottomEdge.mN = { 0.0f, -1.0f };
+    m_player2PaddleBottomEdge.mNdotP0 = AEVec2DotProduct(&m_player2PaddleBottomEdge.mN, &m_player2PaddleBottomEdge.mP0);
+
     if (m_showTime)
     {
         m_elapsedTime += dt;
@@ -151,6 +201,90 @@ void PongGame::Update(f32 dt)
             m_ballPosition.y = currentBallPos.y + m_ballVelocity.y * dt * collisionTime;
         }
 
+        f32 minCollisionTime = 1.0f;
+        AEVec2 bestCollisionNormal = { 0.0f, 0.0f }; 
+        collisionTime = AEAnimatedCircleToStaticLineSegment(&currentBallPos, &nextBallPos, kBallRadius / 2.0f, &m_player1PaddleLeftEdge, &intersectionPoint);
+        if (collisionTime >= 0.0f && collisionTime <= minCollisionTime)
+        {
+            minCollisionTime = collisionTime;
+            bestCollisionNormal = m_player1PaddleLeftEdge.mN;
+
+            float hitPointY = intersectionPoint.y - m_player1Position.y; 
+            float normalizedHitPointY = hitPointY / (kPaddleHeight / 2.0f); 
+            m_ballVelocity.y += normalizedHitPointY * m_ballSpeed * 0.5f; 
+        }
+
+        collisionTime = AEAnimatedCircleToStaticLineSegment(&currentBallPos, &nextBallPos, kBallRadius / 2.0f, &m_player1PaddleRightEdge, &intersectionPoint);
+        if (collisionTime >= 0.0f && collisionTime < minCollisionTime)
+        {
+            minCollisionTime = collisionTime;
+            bestCollisionNormal = m_player1PaddleRightEdge.mN;
+          
+            float hitPointY = intersectionPoint.y - m_player1Position.y;
+            float normalizedHitPointY = hitPointY / (kPaddleHeight / 2.0f);
+            m_ballVelocity.y += normalizedHitPointY * m_ballSpeed * 0.5f;
+        }
+
+        collisionTime = AEAnimatedCircleToStaticLineSegment(&currentBallPos, &nextBallPos, kBallRadius / 2.0f, &m_player1PaddleTopEdge, &intersectionPoint);
+        if (collisionTime >= 0.0f && collisionTime <= minCollisionTime)
+        {
+            minCollisionTime = collisionTime;
+            bestCollisionNormal = m_player1PaddleTopEdge.mN;
+        }
+
+        collisionTime = AEAnimatedCircleToStaticLineSegment(&currentBallPos, &nextBallPos, kBallRadius / 2.0f, &m_player1PaddleBottomEdge, &intersectionPoint);
+        if (collisionTime >= 0.0f && collisionTime <= minCollisionTime)
+        {
+            minCollisionTime = collisionTime;
+            bestCollisionNormal = m_player1PaddleBottomEdge.mN;
+        }
+
+
+        collisionTime = AEAnimatedCircleToStaticLineSegment(&currentBallPos, &nextBallPos, kBallRadius / 2.0f, &m_player2PaddleRightEdge, &intersectionPoint);
+        if (collisionTime >= 0.0f && collisionTime <= minCollisionTime)
+        {
+            minCollisionTime = collisionTime;
+            bestCollisionNormal = m_player2PaddleRightEdge.mN;
+            float hitPointY = intersectionPoint.y - m_player2Position.y;
+            float normalizedHitPointY = hitPointY / (kPaddleHeight / 2.0f);
+            m_ballVelocity.y += normalizedHitPointY * m_ballSpeed * 0.5f;
+        }
+
+        collisionTime = AEAnimatedCircleToStaticLineSegment(&currentBallPos, &nextBallPos, kBallRadius / 2.0f, &m_player2PaddleLeftEdge, &intersectionPoint);
+        if (collisionTime >= 0.0f && collisionTime < minCollisionTime)
+        {
+            minCollisionTime = collisionTime;
+            bestCollisionNormal = m_player2PaddleLeftEdge.mN;
+
+             float hitPointY = intersectionPoint.y - m_player2Position.y;
+             float normalizedHitPointY = hitPointY / (kPaddleHeight / 2.0f);
+             m_ballVelocity.y += normalizedHitPointY * m_ballSpeed * 0.5f;
+        }
+
+        collisionTime = AEAnimatedCircleToStaticLineSegment(&currentBallPos, &nextBallPos, kBallRadius / 2.0f, &m_player2PaddleTopEdge, &intersectionPoint);
+        if (collisionTime >= 0.0f && collisionTime <= minCollisionTime)
+        {
+            minCollisionTime = collisionTime;
+            bestCollisionNormal = m_player2PaddleTopEdge.mN;
+        }
+
+        collisionTime = AEAnimatedCircleToStaticLineSegment(&currentBallPos, &nextBallPos, kBallRadius / 2.0f, &m_player2PaddleBottomEdge, &intersectionPoint);
+        if (collisionTime >= 0.0f && collisionTime <= minCollisionTime)
+        {
+            minCollisionTime = collisionTime;
+            bestCollisionNormal = m_player2PaddleBottomEdge.mN;
+        }
+
+        if (minCollisionTime < 1.0f) 
+        {
+            f32 dotProduct = AEVec2DotProduct(&m_ballVelocity, &bestCollisionNormal);
+            m_ballVelocity.x -= 2.0f * dotProduct * bestCollisionNormal.x;
+            m_ballVelocity.y -= 2.0f * dotProduct * bestCollisionNormal.y;
+
+            m_ballPosition.x = currentBallPos.x + m_ballVelocity.x * dt * minCollisionTime;
+            m_ballPosition.y = currentBallPos.y + m_ballVelocity.y * dt * minCollisionTime; 
+        }
+
          m_ballPosition.x += m_ballVelocity.x * dt;
          m_ballPosition.y += m_ballVelocity.y * dt;
     }
@@ -182,7 +316,6 @@ void PongGame::Draw()
         AEGfxSetBlendMode(AE_GFX_BM_BLEND);
         AEGfxSetTransparency(1.0f);
         AEGfxTextureSet(m_pTex, 0, 0);
-        //std::cout << m_ballPosition.x << " " << m_ballPosition.y << std::endl;
         DrawRect(m_ballPosition.x, m_ballPosition.y, kBallRadius, kBallRadius, 1.0f, 1.0f, 1.0f, 1.0f, m_pTex);
     }
     else

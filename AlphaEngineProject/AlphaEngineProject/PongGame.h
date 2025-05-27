@@ -42,4 +42,14 @@ private:
     AELineSegment2 m_bottomWall;
     AELineSegment2 m_leftWall;
     AELineSegment2 m_rightWall;
+
+    AELineSegment2 m_player1PaddleLeftEdge;
+    AELineSegment2 m_player1PaddleRightEdge;
+    AELineSegment2 m_player1PaddleTopEdge;
+    AELineSegment2 m_player1PaddleBottomEdge;
+
+    AELineSegment2 m_player2PaddleLeftEdge;
+    AELineSegment2 m_player2PaddleRightEdge;
+    AELineSegment2 m_player2PaddleTopEdge;
+    AELineSegment2 m_player2PaddleBottomEdge;
 };
