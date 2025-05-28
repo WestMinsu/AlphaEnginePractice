@@ -8,7 +8,7 @@
 
 PongGame::PongGame()
     : m_elapsedTime(0.0),
-    m_showTime(false),
+    m_isGameRunning(false),
     m_font(kInvalidFontHandle),
     m_randomEngine(std::random_device{}()),
     m_velocityDist(-1.0f, 1.0f)
@@ -67,7 +67,7 @@ void PongGame::Initialize()
     m_ballPosition = { 0.f, 0.f };
     
     m_elapsedTime = 0.0;
-    m_showTime = false;
+    m_isGameRunning = false;
     m_ballSpeed = 500.0f; 
 
     f32 randomX = m_velocityDist(m_randomEngine);
@@ -86,9 +86,9 @@ void PongGame::Update(f32 dt)
 {
     if (AEInputCheckTriggered(AEVK_SPACE))
     {
-        if (!m_showTime) 
+        if (!m_isGameRunning) 
         {
-            m_showTime = true;
+            m_isGameRunning = true;
         }
     }
 
@@ -147,7 +147,7 @@ void PongGame::Update(f32 dt)
     m_player2PaddleBottomEdge.mN = { 0.0f, -1.0f };
     m_player2PaddleBottomEdge.mNdotP0 = AEVec2DotProduct(&m_player2PaddleBottomEdge.mN, &m_player2PaddleBottomEdge.mP0);
 
-    if (m_showTime)
+    if (m_isGameRunning)
     {
         m_elapsedTime += dt;
         AEVec2 currentBallPos = m_ballPosition; 
@@ -292,48 +292,48 @@ void PongGame::Update(f32 dt)
 
 void PongGame::Draw()
 {
+    // GameScene
     AEGfxSetBackgroundColor(0.1f, 0.1f, 0.1f);
 
-    f32 w, h;
-    std::string displayText;
-    f32 currentTextScale;
-
-    if (m_showTime)
+    if (m_isGameRunning)
     {
-        std::stringstream ss;
-        ss << "Time: " << std::fixed << std::setprecision(1) << m_elapsedTime << "s";
-        displayText = ss.str();
-        currentTextScale = 0.8f;
-
-        //draw player1
+  
         DrawRect(m_player1Position.x, m_player1Position.y, kPaddleWidth, kPaddleHeight, 1.0f, 1.0f, 0.0f, 1.0f);
-       
-        //draw player2
+
         DrawRect(m_player2Position.x, m_player2Position.y, kPaddleWidth, kPaddleHeight, 0.0f, 1.0f, 1.0f, 1.0f);
-    
-        //draw ball
+
         AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
         AEGfxSetBlendMode(AE_GFX_BM_BLEND);
         AEGfxSetTransparency(1.0f);
         AEGfxTextureSet(m_pTex, 0, 0);
         DrawRect(m_ballPosition.x, m_ballPosition.y, kBallRadius, kBallRadius, 1.0f, 1.0f, 1.0f, 1.0f, m_pTex);
     }
-    else
-    {
-        displayText = "Press SPACE key to start...";
-        currentTextScale = 1.2f;
-    }
 
-    AEGfxGetPrintSize(m_font, displayText.c_str(), currentTextScale, &w, &h);
-
-    f32 textXPosition = -w / 2;
+    // HUD
+    f32 w, h;
+    std::string displayText;
+    f32 currentTextScale;
+    f32 textXPosition;
     f32 textYPosition;
-    if (m_showTime) 
+
+    if (m_isGameRunning)
     {
+        std::stringstream ss;
+        ss << "Time: " << std::fixed << std::setprecision(1) << m_elapsedTime << "s";
+        displayText = ss.str();
+        currentTextScale = 0.8f;
+
+        AEGfxGetPrintSize(m_font, displayText.c_str(), currentTextScale, &w, &h);
+        textXPosition = -w / 2;
         textYPosition = 0.9f - h;
     }
     else
     {
+        displayText = "Press SPACE key to start...";
+        currentTextScale = 1.2f;
+
+        AEGfxGetPrintSize(m_font, displayText.c_str(), currentTextScale, &w, &h);
+        textXPosition = -w / 2;
         textYPosition = -h / 2;
     }
 

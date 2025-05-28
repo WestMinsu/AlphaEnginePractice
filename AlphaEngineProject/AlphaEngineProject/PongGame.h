@@ -23,7 +23,7 @@ public:
 
 private:
     f64 m_elapsedTime;       
-    bool m_showTime;         
+    bool m_isGameRunning;         
     s8 m_font;     
     AEGfxVertexList* m_mesh;
     AEGfxTexture* m_pTex;
