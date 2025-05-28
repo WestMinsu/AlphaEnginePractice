@@ -152,6 +152,32 @@ void PongGame::Update(f32 dt)
 
 	if (m_isGameRunning)
 	{
+		s32 cursorX, cursorY;
+		AEInputGetCursorPosition(&cursorX, &cursorY);
+		std::cout << cursorY << std::endl;
+	
+		if((m_player1Position.y + (cursorY - kHalfWindowHeight)) < 0) // Coordinate Transformation e.g.) 0 -> 450, 900 -> -450
+		{
+			m_player1Position.y += kPaddleMoveSpeed * dt;
+		}
+		else if((m_player1Position.y + (cursorY - kHalfWindowHeight)) > 0)
+		{
+			m_player1Position.y -= kPaddleMoveSpeed * dt;
+		}
+
+		m_player1Position.y = AEClamp(m_player1Position.y, -(kHalfWindowHeight - kPaddleHeight / 2.0f), kHalfWindowHeight - kPaddleHeight / 2.0f);
+
+		if (AEInputCheckCurr(AEVK_W))
+		{
+			m_player2Position.y += kPaddleMoveSpeed * dt;
+		}
+		if (AEInputCheckCurr(AEVK_S))
+		{
+			m_player2Position.y -= kPaddleMoveSpeed * dt;
+		}
+
+		m_player2Position.y = AEClamp(m_player2Position.y, -(kHalfWindowHeight - kPaddleHeight / 2.0f), kHalfWindowHeight - kPaddleHeight / 2.0f);
+
 		m_elapsedTime += dt;
 		AEVec2 currentBallPos = m_ballPosition;
 		AEVec2 nextBallPos = { m_ballPosition.x + m_ballVelocity.x * dt,
