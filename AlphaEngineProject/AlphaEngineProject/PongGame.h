@@ -53,3 +53,10 @@ private:
     AELineSegment2 m_player2PaddleTopEdge;
     AELineSegment2 m_player2PaddleBottomEdge;
 };
+
+enum PaddleHitType
+{
+    kNone, 
+    kPlayer1,
+    kPlayer2,
+};

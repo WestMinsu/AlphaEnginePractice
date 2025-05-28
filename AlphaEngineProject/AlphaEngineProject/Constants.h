@@ -6,6 +6,6 @@ inline const float kHalfWindowHeight = kGameWindowHeight / 2.0f;
 
 inline const float kPaddleWidth = 50.0f;
 inline const float kPaddleHeight = 200.0f;
-inline const float kBallRadius = 50.0f;
+inline const float kBallRadius = 25.0f;
 
 inline const int kInvalidFontHandle = -1;

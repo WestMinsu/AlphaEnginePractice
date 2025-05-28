@@ -68,7 +68,7 @@ void PongGame::Initialize()
     
     m_elapsedTime = 0.0;
     m_isGameRunning = false;
-    m_ballSpeed = 500.0f; 
+    m_ballSpeed = 700.0f; 
 
     f32 randomX = m_velocityDist(m_randomEngine);
     f32 randomY = m_velocityDist(m_randomEngine);
@@ -150,143 +150,154 @@ void PongGame::Update(f32 dt)
     if (m_isGameRunning)
     {
         m_elapsedTime += dt;
-        AEVec2 currentBallPos = m_ballPosition; 
-        AEVec2 nextBallPos;
-        nextBallPos.x = m_ballPosition.x + m_ballVelocity.x * dt;
-        nextBallPos.y = m_ballPosition.y + m_ballVelocity.y * dt;
-        AEVec2 intersectionPoint;
-        f32 collisionTime;
-
-        collisionTime = AEAnimatedCircleToStaticLineSegment(&currentBallPos, &nextBallPos, kBallRadius / 2.0f, &m_topWall, &intersectionPoint);
-        if (collisionTime >= 0.0f)
-        {
-            f32 dotProduct = AEVec2DotProduct(&m_ballVelocity, &m_topWall.mN);
-            m_ballVelocity.x -= 2.0f * dotProduct * m_topWall.mN.x;
-            m_ballVelocity.y -= 2.0f * dotProduct * m_topWall.mN.y;
-
-            m_ballPosition.x = currentBallPos.x + m_ballVelocity.x * dt * collisionTime;
-            m_ballPosition.y = currentBallPos.y + m_ballVelocity.y * dt * collisionTime;
-        }
-
-        collisionTime = AEAnimatedCircleToStaticLineSegment(&currentBallPos, &nextBallPos, kBallRadius / 2.0f, &m_bottomWall, &intersectionPoint);
-        if (collisionTime >= 0.0f)
-        {
-            f32 dotProduct = AEVec2DotProduct(&m_ballVelocity, &m_bottomWall.mN);
-            m_ballVelocity.x -= 2.0f * dotProduct * m_bottomWall.mN.x;
-            m_ballVelocity.y -= 2.0f * dotProduct * m_bottomWall.mN.y;
-
-            m_ballPosition.x = currentBallPos.x + m_ballVelocity.x * dt * collisionTime;
-            m_ballPosition.y = currentBallPos.y + m_ballVelocity.y * dt * collisionTime;
-        }
-
-        collisionTime = AEAnimatedCircleToStaticLineSegment(&currentBallPos, &nextBallPos, kBallRadius / 2.0f, &m_leftWall, &intersectionPoint);
-        if (collisionTime >= 0.0f)
-        {
-            f32 dotProduct = AEVec2DotProduct(&m_ballVelocity, &m_leftWall.mN);
-            m_ballVelocity.x -= 2.0f * dotProduct * m_leftWall.mN.x;
-            m_ballVelocity.y -= 2.0f * dotProduct * m_leftWall.mN.y;
-
-            m_ballPosition.x = currentBallPos.x + m_ballVelocity.x * dt * collisionTime;
-            m_ballPosition.y = currentBallPos.y + m_ballVelocity.y * dt * collisionTime;
-        }
-
-        collisionTime = AEAnimatedCircleToStaticLineSegment(&currentBallPos, &nextBallPos, kBallRadius / 2.0f, &m_rightWall, &intersectionPoint);
-        if (collisionTime >= 0.0f)
-        {
-            f32 dotProduct = AEVec2DotProduct(&m_ballVelocity, &m_rightWall.mN);
-            m_ballVelocity.x -= 2.0f * dotProduct * m_rightWall.mN.x;
-            m_ballVelocity.y -= 2.0f * dotProduct * m_rightWall.mN.y;
-
-            m_ballPosition.x = currentBallPos.x + m_ballVelocity.x * dt * collisionTime;
-            m_ballPosition.y = currentBallPos.y + m_ballVelocity.y * dt * collisionTime;
-        }
+        AEVec2 currentBallPos = m_ballPosition;
+        AEVec2 nextBallPos = { m_ballPosition.x + m_ballVelocity.x * dt,
+                               m_ballPosition.y + m_ballVelocity.y * dt };
 
         f32 minCollisionTime = 1.0f;
-        AEVec2 bestCollisionNormal = { 0.0f, 0.0f }; 
-        collisionTime = AEAnimatedCircleToStaticLineSegment(&currentBallPos, &nextBallPos, kBallRadius / 2.0f, &m_player1PaddleLeftEdge, &intersectionPoint);
-        if (collisionTime >= 0.0f && collisionTime <= minCollisionTime)
-        {
-            minCollisionTime = collisionTime;
-            bestCollisionNormal = m_player1PaddleLeftEdge.mN;
+        AEVec2 bestCollisionNormal = { 0.0f, 0.0f };
+        bool collisionOccurredInFrame = false;
 
-            float hitPointY = intersectionPoint.y - m_player1Position.y; 
-            float normalizedHitPointY = hitPointY / (kPaddleHeight / 2.0f); 
-            m_ballVelocity.y += normalizedHitPointY * m_ballSpeed * 0.5f; 
+        PaddleHitType paddleHitType = kNone;
+        f32 paddleCenterY = 0.0f;
+
+        AEVec2 intersectionPoint; 
+        f32 collisionTime;
+
+        AELineSegment2* walls[] = { &m_topWall, &m_bottomWall, &m_leftWall, &m_rightWall };
+        for (AELineSegment2* wall : walls)
+        {
+            collisionTime = AEAnimatedCircleToStaticLineSegment(&currentBallPos, &nextBallPos, kBallRadius, wall, &intersectionPoint);
+            if (collisionTime >= 0.0f && collisionTime < minCollisionTime)
+            {
+                minCollisionTime = collisionTime;
+                bestCollisionNormal = wall->mN;
+                collisionOccurredInFrame = true;
+                paddleHitType = kNone; 
+            }
         }
 
-        collisionTime = AEAnimatedCircleToStaticLineSegment(&currentBallPos, &nextBallPos, kBallRadius / 2.0f, &m_player1PaddleRightEdge, &intersectionPoint);
-        if (collisionTime >= 0.0f && collisionTime < minCollisionTime)
+        // corner collsion
+        AEVec2 p1Corners[] = {
+            {m_player1Position.x - kPaddleWidth / 2.0f, m_player1Position.y - kPaddleHeight / 2.0f}, // Bottom-Left
+            {m_player1Position.x + kPaddleWidth / 2.0f, m_player1Position.y - kPaddleHeight / 2.0f}, // Bottom-Right
+            {m_player1Position.x - kPaddleWidth / 2.0f, m_player1Position.y + kPaddleHeight / 2.0f}, // Top-Left
+            {m_player1Position.x + kPaddleWidth / 2.0f, m_player1Position.y + kPaddleHeight / 2.0f}  // Top-Right
+        };
+        for (AEVec2& corner : p1Corners)
         {
-            minCollisionTime = collisionTime;
-            bestCollisionNormal = m_player1PaddleRightEdge.mN;
-          
-            float hitPointY = intersectionPoint.y - m_player1Position.y;
-            float normalizedHitPointY = hitPointY / (kPaddleHeight / 2.0f);
-            m_ballVelocity.y += normalizedHitPointY * m_ballSpeed * 0.5f;
+            collisionTime = AEAnimatedPointToStaticCircle(&currentBallPos, &nextBallPos, &corner, kBallRadius, &intersectionPoint);
+
+            if (collisionTime >= 0.0f && collisionTime < minCollisionTime)
+            {
+                minCollisionTime = collisionTime;
+
+                AEVec2 ballCollisionPos = {
+                    currentBallPos.x + m_ballVelocity.x * dt * minCollisionTime,
+                    currentBallPos.y + m_ballVelocity.y * dt * minCollisionTime
+                };
+                AEVec2 tempNormal;
+                AEVec2Sub(&tempNormal, &ballCollisionPos, &corner); 
+                AEVec2Normalize(&bestCollisionNormal, &tempNormal); 
+
+                collisionOccurredInFrame = true;
+                paddleHitType = kPlayer1;
+                paddleCenterY = m_player1Position.y;
+            }
         }
 
-        collisionTime = AEAnimatedCircleToStaticLineSegment(&currentBallPos, &nextBallPos, kBallRadius / 2.0f, &m_player1PaddleTopEdge, &intersectionPoint);
-        if (collisionTime >= 0.0f && collisionTime <= minCollisionTime)
+        AEVec2 p2Corners[] = {
+            {m_player2Position.x - kPaddleWidth / 2.0f, m_player2Position.y - kPaddleHeight / 2.0f},
+            {m_player2Position.x + kPaddleWidth / 2.0f, m_player2Position.y - kPaddleHeight / 2.0f},
+            {m_player2Position.x - kPaddleWidth / 2.0f, m_player2Position.y + kPaddleHeight / 2.0f},
+            {m_player2Position.x + kPaddleWidth / 2.0f, m_player2Position.y + kPaddleHeight / 2.0f}
+        };
+        for (const AEVec2& corner : p2Corners)
         {
-            minCollisionTime = collisionTime;
-            bestCollisionNormal = m_player1PaddleTopEdge.mN;
+            collisionTime = AEAnimatedPointToStaticCircle(&currentBallPos, &nextBallPos, (AEVec2*)&corner, kBallRadius, &intersectionPoint);
+
+            if (collisionTime >= 0.0f && collisionTime < minCollisionTime)
+            {
+                minCollisionTime = collisionTime;
+
+                AEVec2 ballCollisionPos = {
+                    currentBallPos.x + m_ballVelocity.x * dt * minCollisionTime,
+                    currentBallPos.y + m_ballVelocity.y * dt * minCollisionTime
+                };
+                AEVec2 tempNormal;
+                AEVec2Sub(&tempNormal, &ballCollisionPos, (AEVec2*)&corner);
+                AEVec2Normalize(&bestCollisionNormal, &tempNormal);
+
+                collisionOccurredInFrame = true;
+                paddleHitType = kPlayer2;
+                paddleCenterY = m_player2Position.y;
+            }
         }
 
-        collisionTime = AEAnimatedCircleToStaticLineSegment(&currentBallPos, &nextBallPos, kBallRadius / 2.0f, &m_player1PaddleBottomEdge, &intersectionPoint);
-        if (collisionTime >= 0.0f && collisionTime <= minCollisionTime)
+
+        AELineSegment2* p1Paddles[] = {
+            &m_player1PaddleLeftEdge, &m_player1PaddleRightEdge,
+            &m_player1PaddleTopEdge, &m_player1PaddleBottomEdge
+        };
+        for (AELineSegment2* paddleEdge : p1Paddles)
         {
-            minCollisionTime = collisionTime;
-            bestCollisionNormal = m_player1PaddleBottomEdge.mN;
+            collisionTime = AEAnimatedCircleToStaticLineSegment(&currentBallPos, &nextBallPos, kBallRadius, paddleEdge, &intersectionPoint);
+            if (collisionTime >= 0.0f && collisionTime < minCollisionTime)
+            {
+                minCollisionTime = collisionTime;
+                bestCollisionNormal = paddleEdge->mN;
+                collisionOccurredInFrame = true;
+                paddleHitType = kPlayer1;
+                paddleCenterY = m_player1Position.y;
+            }
         }
 
-
-        collisionTime = AEAnimatedCircleToStaticLineSegment(&currentBallPos, &nextBallPos, kBallRadius / 2.0f, &m_player2PaddleRightEdge, &intersectionPoint);
-        if (collisionTime >= 0.0f && collisionTime <= minCollisionTime)
+        AELineSegment2* p2Paddles[] = {
+            &m_player2PaddleLeftEdge, &m_player2PaddleRightEdge,
+            &m_player2PaddleTopEdge, &m_player2PaddleBottomEdge
+        };
+        for (AELineSegment2* paddleEdge : p2Paddles)
         {
-            minCollisionTime = collisionTime;
-            bestCollisionNormal = m_player2PaddleRightEdge.mN;
-            float hitPointY = intersectionPoint.y - m_player2Position.y;
-            float normalizedHitPointY = hitPointY / (kPaddleHeight / 2.0f);
-            m_ballVelocity.y += normalizedHitPointY * m_ballSpeed * 0.5f;
+            collisionTime = AEAnimatedCircleToStaticLineSegment(&currentBallPos, &nextBallPos, kBallRadius, paddleEdge, &intersectionPoint);
+            if (collisionTime >= 0.0f && collisionTime < minCollisionTime)
+            {
+                minCollisionTime = collisionTime;
+                bestCollisionNormal = paddleEdge->mN;
+                collisionOccurredInFrame = true;
+                paddleHitType = kPlayer2;
+                paddleCenterY = m_player2Position.y;
+            }
         }
 
-        collisionTime = AEAnimatedCircleToStaticLineSegment(&currentBallPos, &nextBallPos, kBallRadius / 2.0f, &m_player2PaddleLeftEdge, &intersectionPoint);
-        if (collisionTime >= 0.0f && collisionTime < minCollisionTime)
-        {
-            minCollisionTime = collisionTime;
-            bestCollisionNormal = m_player2PaddleLeftEdge.mN;
-
-             float hitPointY = intersectionPoint.y - m_player2Position.y;
-             float normalizedHitPointY = hitPointY / (kPaddleHeight / 2.0f);
-             m_ballVelocity.y += normalizedHitPointY * m_ballSpeed * 0.5f;
-        }
-
-        collisionTime = AEAnimatedCircleToStaticLineSegment(&currentBallPos, &nextBallPos, kBallRadius / 2.0f, &m_player2PaddleTopEdge, &intersectionPoint);
-        if (collisionTime >= 0.0f && collisionTime <= minCollisionTime)
-        {
-            minCollisionTime = collisionTime;
-            bestCollisionNormal = m_player2PaddleTopEdge.mN;
-        }
-
-        collisionTime = AEAnimatedCircleToStaticLineSegment(&currentBallPos, &nextBallPos, kBallRadius / 2.0f, &m_player2PaddleBottomEdge, &intersectionPoint);
-        if (collisionTime >= 0.0f && collisionTime <= minCollisionTime)
-        {
-            minCollisionTime = collisionTime;
-            bestCollisionNormal = m_player2PaddleBottomEdge.mN;
-        }
-
-        if (minCollisionTime < 1.0f) 
+        if (collisionOccurredInFrame)
         {
             f32 dotProduct = AEVec2DotProduct(&m_ballVelocity, &bestCollisionNormal);
             m_ballVelocity.x -= 2.0f * dotProduct * bestCollisionNormal.x;
             m_ballVelocity.y -= 2.0f * dotProduct * bestCollisionNormal.y;
 
-            m_ballPosition.x = currentBallPos.x + m_ballVelocity.x * dt * minCollisionTime;
-            m_ballPosition.y = currentBallPos.y + m_ballVelocity.y * dt * minCollisionTime; 
-        }
+            if (paddleHitType != kNone)
+            {
+                AEVec2 finalCollisionBallPos = {
+                    currentBallPos.x + m_ballVelocity.x * dt * minCollisionTime,
+                    currentBallPos.y + m_ballVelocity.y * dt * minCollisionTime
+                };
 
-         m_ballPosition.x += m_ballVelocity.x * dt;
-         m_ballPosition.y += m_ballVelocity.y * dt;
+                float hitPointY = finalCollisionBallPos.y - paddleCenterY;
+                float normalizedHitPointY = hitPointY / (kPaddleHeight / 2.0f);
+                m_ballVelocity.y += normalizedHitPointY * m_ballSpeed * 0.5f;
+            }
+
+            AEVec2Normalize(&m_ballVelocity, &m_ballVelocity);
+            m_ballVelocity.x *= m_ballSpeed;
+            m_ballVelocity.y *= m_ballSpeed;
+
+            m_ballPosition.x = currentBallPos.x + m_ballVelocity.x * dt * minCollisionTime;
+            m_ballPosition.y = currentBallPos.y + m_ballVelocity.y * dt * minCollisionTime;
+        }
+        else
+        {
+            m_ballPosition = nextBallPos;
+        }
     }
 }
 
@@ -306,7 +317,7 @@ void PongGame::Draw()
         AEGfxSetBlendMode(AE_GFX_BM_BLEND);
         AEGfxSetTransparency(1.0f);
         AEGfxTextureSet(m_pTex, 0, 0);
-        DrawRect(m_ballPosition.x, m_ballPosition.y, kBallRadius, kBallRadius, 1.0f, 1.0f, 1.0f, 1.0f, m_pTex);
+        DrawRect(m_ballPosition.x, m_ballPosition.y, kBallRadius * 2.0f, kBallRadius * 2.0f, 1.0f, 1.0f, 1.0f, 1.0f, m_pTex);
     }
 
     // HUD
