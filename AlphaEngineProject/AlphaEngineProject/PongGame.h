@@ -5,6 +5,13 @@
 #include <chrono>       
 #include <cmath> 
 
+enum class PaddleHitType
+{
+    kNone,
+    kPlayer1,
+    kPlayer2,
+};
+
 class PongGame
 {
 public:
@@ -55,11 +62,7 @@ private:
 
     int m_player1Score;
     int m_player2Score;
-};
 
-enum PaddleHitType
-{
-    kNone, 
-    kPlayer1,
-    kPlayer2,
+    bool m_ballHitPaddleInitial;
+    GameState m_gameState;
 };

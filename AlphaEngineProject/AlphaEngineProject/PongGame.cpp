@@ -156,11 +156,11 @@ void PongGame::Update(f32 dt)
 		AEInputGetCursorPosition(&cursorX, &cursorY);
 		std::cout << cursorY << std::endl;
 	
-		if((m_player1Position.y + (cursorY - kHalfWindowHeight)) < 0) // Coordinate Transformation e.g.) 0 -> 450, 900 -> -450
+		if((m_player1Position.y + (cursorY - kHalfWindowHeight)) < -5) // Coordinate Transformation e.g.) 0 -> 450, 900 -> -450
 		{
 			m_player1Position.y += kPaddleMoveSpeed * dt;
 		}
-		else if((m_player1Position.y + (cursorY - kHalfWindowHeight)) > 0)
+		else if((m_player1Position.y + (cursorY - kHalfWindowHeight)) > 5)
 		{
 			m_player1Position.y -= kPaddleMoveSpeed * dt;
 		}
@@ -187,7 +187,7 @@ void PongGame::Update(f32 dt)
 		AEVec2 bestCollisionNormal = { 0.0f, 0.0f };
 		bool collisionOccurred = false;
 
-		PaddleHitType paddleHitType = kNone;
+		PaddleHitType paddleHitType = PaddleHitType::kNone;
 		f32 paddleCenterY = 0.0f;
 
 		AEVec2 intersectionPoint;
@@ -203,7 +203,7 @@ void PongGame::Update(f32 dt)
 				minCollisionTime = collisionTime;
 				bestCollisionNormal = wall->mN;
 				collisionOccurred = true;
-				paddleHitType = kNone;
+				paddleHitType = PaddleHitType::kNone;
 
 				if (wall == &m_rightWall)
 				{
@@ -241,7 +241,7 @@ void PongGame::Update(f32 dt)
 				AEVec2Normalize(&bestCollisionNormal, &tempNormal);
 
 				collisionOccurred = true;
-				paddleHitType = kPlayer1;
+				paddleHitType = PaddleHitType::kPlayer1;
 				paddleCenterY = m_player1Position.y;
 			}
 		}
@@ -269,7 +269,7 @@ void PongGame::Update(f32 dt)
 				AEVec2Normalize(&bestCollisionNormal, &tempNormal);
 
 				collisionOccurred = true;
-				paddleHitType = kPlayer2;
+				paddleHitType = PaddleHitType::kPlayer2;
 				paddleCenterY = m_player2Position.y;
 			}
 		}
@@ -286,7 +286,7 @@ void PongGame::Update(f32 dt)
 				minCollisionTime = collisionTime;
 				bestCollisionNormal = paddleEdge->mN;
 				collisionOccurred = true;
-				paddleHitType = kPlayer1;
+				paddleHitType = PaddleHitType::kPlayer1;
 				paddleCenterY = m_player1Position.y;
 			}
 		}
@@ -303,7 +303,7 @@ void PongGame::Update(f32 dt)
 				minCollisionTime = collisionTime;
 				bestCollisionNormal = paddleEdge->mN;
 				collisionOccurred = true;
-				paddleHitType = kPlayer2;
+				paddleHitType = PaddleHitType::kPlayer2;
 				paddleCenterY = m_player2Position.y;
 			}
 		}
@@ -314,7 +314,7 @@ void PongGame::Update(f32 dt)
 			m_ballVelocity.x -= 2.0f * dotProduct * bestCollisionNormal.x;
 			m_ballVelocity.y -= 2.0f * dotProduct * bestCollisionNormal.y;
 
-			if (paddleHitType != kNone)
+			if (paddleHitType != PaddleHitType::kNone)
 			{
 				AEVec2 finalCollisionBallPos = {
 					currentBallPos.x + m_ballVelocity.x * dt * minCollisionTime,
