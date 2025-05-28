@@ -80,6 +80,9 @@ void PongGame::Initialize()
 
     m_ballVelocity.x *= m_ballSpeed;
     m_ballVelocity.y *= m_ballSpeed;
+
+    m_player1Score = 0; 
+    m_player2Score = 0; 
 }
 
 void PongGame::Update(f32 dt)
@@ -156,7 +159,7 @@ void PongGame::Update(f32 dt)
 
         f32 minCollisionTime = 1.0f;
         AEVec2 bestCollisionNormal = { 0.0f, 0.0f };
-        bool collisionOccurredInFrame = false;
+        bool collisionOccurred = false;
 
         PaddleHitType paddleHitType = kNone;
         f32 paddleCenterY = 0.0f;
@@ -164,6 +167,7 @@ void PongGame::Update(f32 dt)
         AEVec2 intersectionPoint; 
         f32 collisionTime;
 
+        // wall collision
         AELineSegment2* walls[] = { &m_topWall, &m_bottomWall, &m_leftWall, &m_rightWall };
         for (AELineSegment2* wall : walls)
         {
@@ -172,13 +176,23 @@ void PongGame::Update(f32 dt)
             {
                 minCollisionTime = collisionTime;
                 bestCollisionNormal = wall->mN;
-                collisionOccurredInFrame = true;
+                collisionOccurred = true;
                 paddleHitType = kNone; 
+
+                if (wall == &m_rightWall) // °øÀÌ ¿ìÃø º®¿¡ ºÎµúÇû´Ù¸é (ÇÃ·¹ÀÌ¾î A °ñ)
+                {
+                    m_player1Score++; 
+                }
+                else if (wall == &m_leftWall)
+                {
+                    m_player2Score++; 
+                }
             }
         }
 
-        // corner collsion
-        AEVec2 p1Corners[] = {
+        // corner collision
+        AEVec2 p1Corners[] = 
+        {
             {m_player1Position.x - kPaddleWidth / 2.0f, m_player1Position.y - kPaddleHeight / 2.0f}, // Bottom-Left
             {m_player1Position.x + kPaddleWidth / 2.0f, m_player1Position.y - kPaddleHeight / 2.0f}, // Bottom-Right
             {m_player1Position.x - kPaddleWidth / 2.0f, m_player1Position.y + kPaddleHeight / 2.0f}, // Top-Left
@@ -200,7 +214,7 @@ void PongGame::Update(f32 dt)
                 AEVec2Sub(&tempNormal, &ballCollisionPos, &corner); 
                 AEVec2Normalize(&bestCollisionNormal, &tempNormal); 
 
-                collisionOccurredInFrame = true;
+                collisionOccurred = true;
                 paddleHitType = kPlayer1;
                 paddleCenterY = m_player1Position.y;
             }
@@ -228,12 +242,11 @@ void PongGame::Update(f32 dt)
                 AEVec2Sub(&tempNormal, &ballCollisionPos, (AEVec2*)&corner);
                 AEVec2Normalize(&bestCollisionNormal, &tempNormal);
 
-                collisionOccurredInFrame = true;
+                collisionOccurred = true;
                 paddleHitType = kPlayer2;
                 paddleCenterY = m_player2Position.y;
             }
         }
-
 
         AELineSegment2* p1Paddles[] = {
             &m_player1PaddleLeftEdge, &m_player1PaddleRightEdge,
@@ -246,7 +259,7 @@ void PongGame::Update(f32 dt)
             {
                 minCollisionTime = collisionTime;
                 bestCollisionNormal = paddleEdge->mN;
-                collisionOccurredInFrame = true;
+                collisionOccurred = true;
                 paddleHitType = kPlayer1;
                 paddleCenterY = m_player1Position.y;
             }
@@ -263,13 +276,13 @@ void PongGame::Update(f32 dt)
             {
                 minCollisionTime = collisionTime;
                 bestCollisionNormal = paddleEdge->mN;
-                collisionOccurredInFrame = true;
+                collisionOccurred = true;
                 paddleHitType = kPlayer2;
                 paddleCenterY = m_player2Position.y;
             }
         }
 
-        if (collisionOccurredInFrame)
+        if (collisionOccurred)
         {
             f32 dotProduct = AEVec2DotProduct(&m_ballVelocity, &bestCollisionNormal);
             m_ballVelocity.x -= 2.0f * dotProduct * bestCollisionNormal.x;
@@ -326,7 +339,7 @@ void PongGame::Draw()
     f32 currentTextScale;
     f32 textXPosition;
     f32 textYPosition;
-
+    
     if (m_isGameRunning)
     {
         std::stringstream ss;
@@ -337,6 +350,18 @@ void PongGame::Draw()
         AEGfxGetPrintSize(m_font, displayText.c_str(), currentTextScale, &w, &h);
         textXPosition = -w / 2;
         textYPosition = 0.9f - h;
+
+        std::stringstream ssP1;
+        ssP1 << m_player1Score;
+        f32 p1_x = -0.6f; 
+        f32 p1_y = 0.8f;  
+        AEGfxPrint(m_font, ssP1.str().c_str(), p1_x, p1_y, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+
+        std::stringstream ssP2;
+        ssP2 << m_player2Score;
+        f32 p2_x = 0.6f;
+        f32 p2_y = 0.8f; 
+        AEGfxPrint(m_font, ssP2.str().c_str(), p2_x, p2_y, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
     }
     else
     {

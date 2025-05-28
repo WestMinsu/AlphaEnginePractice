@@ -52,6 +52,9 @@ private:
     AELineSegment2 m_player2PaddleRightEdge;
     AELineSegment2 m_player2PaddleTopEdge;
     AELineSegment2 m_player2PaddleBottomEdge;
+
+    int m_player1Score;
+    int m_player2Score;
 };
 
 enum PaddleHitType
