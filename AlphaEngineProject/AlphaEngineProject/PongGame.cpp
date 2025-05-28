@@ -55,9 +55,9 @@ PongGame::~PongGame()
     {
         AEGfxDestroyFont(m_font);
         m_font = kInvalidFontHandle;
-        AEGfxMeshFree(m_mesh);
-        AEGfxTextureUnload(m_pTex);
     }
+    AEGfxMeshFree(m_mesh);
+    AEGfxTextureUnload(m_pTex);
 }
 
 void PongGame::Initialize()
@@ -65,7 +65,7 @@ void PongGame::Initialize()
     m_player1Position = { -700.f, 0.f };
     m_player2Position = { 700.f, 0.f };
     m_ballPosition = { 0.f, 0.f };
-
+    
     m_elapsedTime = 0.0;
     m_showTime = false;
     m_ballSpeed = 500.0f; 
