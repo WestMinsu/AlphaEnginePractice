@@ -64,5 +64,4 @@ private:
     int m_player2Score;
 
     bool m_ballHitPaddleInitial;
-    GameState m_gameState;
 };
