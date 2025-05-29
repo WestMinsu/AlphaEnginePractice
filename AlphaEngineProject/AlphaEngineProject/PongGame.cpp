@@ -8,7 +8,7 @@
 
 PongGame::PongGame()
 	: m_elapsedTime(0.0),
-	m_isGameRunning(false),
+	m_gameState(GameState::MAIN_MENU),
 	m_font(kInvalidFontHandle),
 	m_randomEngine(std::random_device{}()),
 	m_velocityDist(-1.0f, 1.0f)
@@ -66,35 +66,24 @@ void PongGame::Initialize()
 	m_player2Position = { kGameWindowWidth / 3.0f, 0.f };
 	m_ballPosition = { 0.f, 0.f };
 
-	m_elapsedTime = 0.0;
-	m_isGameRunning = false;
-	m_ballSpeed = 700.0f;
-
-	f32 randomX = m_velocityDist(m_randomEngine);
-	f32 randomY = m_velocityDist(m_randomEngine);
-
-	m_ballVelocity.x = m_velocityDist(m_randomEngine);
-	m_ballVelocity.y = m_velocityDist(m_randomEngine);
-
-	AEVec2Normalize(&m_ballVelocity, &m_ballVelocity);
-
-	m_ballVelocity.x *= m_ballSpeed;
-	m_ballVelocity.y *= m_ballSpeed;
-
 	m_player1Score = 0;
 	m_player2Score = 0;
+
+	m_elapsedTime = 0.0;
+	m_gameState = GameState::MAIN_MENU;
+
+	m_ballSpeed = 700.0f;
+	f32 randomX = m_velocityDist(m_randomEngine);
+	f32 randomY = m_velocityDist(m_randomEngine);
+	m_ballVelocity.x = m_velocityDist(m_randomEngine);
+	m_ballVelocity.y = m_velocityDist(m_randomEngine);
+	AEVec2Normalize(&m_ballVelocity, &m_ballVelocity);
+	m_ballVelocity.x *= m_ballSpeed;
+	m_ballVelocity.y *= m_ballSpeed;
 }
 
 void PongGame::Update(f32 dt)
 {
-	if (AEInputCheckTriggered(AEVK_SPACE))
-	{
-		if (!m_isGameRunning)
-		{
-			m_isGameRunning = true;
-		}
-	}
-
 	if (AEInputCheckTriggered(AEVK_R))
 	{
 		Initialize();
@@ -150,17 +139,26 @@ void PongGame::Update(f32 dt)
 	m_player2PaddleBottomEdge.mN = { 0.0f, -1.0f };
 	m_player2PaddleBottomEdge.mNdotP0 = AEVec2DotProduct(&m_player2PaddleBottomEdge.mN, &m_player2PaddleBottomEdge.mP0);
 
-	if (m_isGameRunning)
+	switch (m_gameState)
+	{
+	case GameState::MAIN_MENU:
+	{
+		if (AEInputCheckTriggered(AEVK_SPACE))
+		{
+			m_gameState = GameState::MAIN_GAME;
+		}
+		break;
+	case GameState::MAIN_GAME:
 	{
 		s32 cursorX, cursorY;
 		AEInputGetCursorPosition(&cursorX, &cursorY);
 		std::cout << cursorY << std::endl;
-	
-		if((m_player1Position.y + (cursorY - kHalfWindowHeight)) < -5) // Coordinate Transformation e.g.) 0 -> 450, 900 -> -450
+
+		if ((m_player1Position.y + (cursorY - kHalfWindowHeight)) < -5) // Coordinate Transformation e.g.) 0 -> 450, 900 -> -450
 		{
 			m_player1Position.y += kPaddleMoveSpeed * dt;
 		}
-		else if((m_player1Position.y + (cursorY - kHalfWindowHeight)) > 5)
+		else if ((m_player1Position.y + (cursorY - kHalfWindowHeight)) > 5)
 		{
 			m_player1Position.y -= kPaddleMoveSpeed * dt;
 		}
@@ -208,10 +206,20 @@ void PongGame::Update(f32 dt)
 				if (wall == &m_rightWall)
 				{
 					m_player1Score++;
+					if (m_player1Score >= kWinScore)
+					{
+						m_gameState = GameState::RESULT;
+						m_winMessage = "PLAYER A WINS!";
+					}
 				}
 				else if (wall == &m_leftWall)
 				{
 					m_player2Score++;
+					if (m_player2Score >= kWinScore)
+					{
+						m_gameState = GameState::RESULT;
+						m_winMessage = "PLAYER B WINS!";
+					}
 				}
 			}
 		}
@@ -338,18 +346,33 @@ void PongGame::Update(f32 dt)
 			m_ballPosition = nextBallPos;
 		}
 	}
+	}
+	}
 }
-
 void PongGame::Draw()
 {
-	// GameScene
 	AEGfxSetBackgroundColor(0.1f, 0.1f, 0.1f);
 
-	if (m_isGameRunning)
+	switch (m_gameState)
 	{
+	case GameState::MAIN_MENU:
+	{
+		std::string displayText = "Press SPACE key to start...";
+		f32 TextScale = 1.2f;
 
+		f32 w, h;
+		AEGfxGetPrintSize(m_font, displayText.c_str(), TextScale, &w, &h);
+
+		f32 textXPosition = -w / 2;
+		f32 textYPosition = -h / 2;
+
+		AEGfxPrint(m_font, displayText.c_str(), textXPosition, textYPosition, TextScale, 1, 1, 1, 1);
+		break;
+	}
+	case GameState::MAIN_GAME:
+	{
+		// Game Scene
 		DrawRect(m_player1Position.x, m_player1Position.y, kPaddleWidth, kPaddleHeight, 1.0f, 1.0f, 0.0f, 1.0f);
-
 		DrawRect(m_player2Position.x, m_player2Position.y, kPaddleWidth, kPaddleHeight, 0.0f, 1.0f, 1.0f, 1.0f);
 
 		AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
@@ -357,49 +380,58 @@ void PongGame::Draw()
 		AEGfxSetTransparency(1.0f);
 		AEGfxTextureSet(m_pTex, 0, 0);
 		DrawRect(m_ballPosition.x, m_ballPosition.y, kBallRadius * 2.0f, kBallRadius * 2.0f, 1.0f, 1.0f, 1.0f, 1.0f, m_pTex);
-	}
 
-	// HUD
-	f32 w, h;
-	std::string displayText;
-	f32 currentTextScale;
-	f32 textXPosition;
-	f32 textYPosition;
 
-	if (m_isGameRunning)
-	{
-		std::stringstream ss;
-		ss << "Time: " << std::fixed << std::setprecision(1) << m_elapsedTime << "s";
-		displayText = ss.str();
-		currentTextScale = 0.8f;
+		// HUD
+		std::stringstream ssTime;
+		ssTime << "Time: " << std::fixed << std::setprecision(1) << m_elapsedTime << "s";
 
-		AEGfxGetPrintSize(m_font, displayText.c_str(), currentTextScale, &w, &h);
-		textXPosition = -w / 2;
-		textYPosition = 0.9f - h;
+		f32 TextScale = 0.8f;
+		f32 w, h;
+		AEGfxGetPrintSize(m_font, ssTime.str().c_str(), TextScale, &w, &h);
+
+		f32 time_x = -w / 2;
+		f32 time_y = 0.9f - h;
+		AEGfxPrint(m_font, ssTime.str().c_str(), time_x, time_y, TextScale, 1.0f, 1.0f, 1.0f, 1.0f);
 
 		std::stringstream ssP1;
 		ssP1 << m_player1Score;
+
 		f32 p1_x = -2.0f / 3.0f;
-		f32 p1_y = 0.9f - h;
-		AEGfxPrint(m_font, ssP1.str().c_str(), p1_x, p1_y, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+		f32 p1_y = time_y;
+		AEGfxPrint(m_font, ssP1.str().c_str(), p1_x, p1_y, TextScale, 1.0f, 1.0f, 1.0f, 1.0f);
 
 		std::stringstream ssP2;
 		ssP2 << m_player2Score;
-		f32 p2_x = 2.0f / 3.0f;
-		f32 p2_y = 0.9f - h;
-		AEGfxPrint(m_font, ssP2.str().c_str(), p2_x, p2_y, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+		f32 p2_x = -p1_x;
+		f32 p2_y = p1_y;
+		AEGfxPrint(m_font, ssP2.str().c_str(), p2_x, p2_y, TextScale, 1.0f, 1.0f, 1.0f, 1.0f);
+		break;
 	}
-	else
+	case GameState::RESULT:
 	{
-		displayText = "Press SPACE key to start...";
-		currentTextScale = 1.2f;
+		f32 win_w, win_h;
+		AEGfxGetPrintSize(m_font, m_winMessage.c_str(), 1.5f, &win_w, &win_h);
+		f32 win_x = -win_w / 2.0f;
+		f32 win_y = 0.1f;
 
-		AEGfxGetPrintSize(m_font, displayText.c_str(), currentTextScale, &w, &h);
-		textXPosition = -w / 2;
-		textYPosition = -h / 2;
+		if (m_winMessage.find("PLAYER A") != std::string::npos) {
+			AEGfxPrint(m_font, m_winMessage.c_str(), win_x, win_y, 1.5f, 1.0f, 1.0f, 0.0f, 1.0f); 
+		}
+		else {
+			AEGfxPrint(m_font, m_winMessage.c_str(), win_x, win_y, 1.5f, 0.0f, 1.0f, 1.0f, 1.0f); 
+		}
+
+		std::string restartMsg = "Press R to Restart";
+		f32 restart_w, restart_h;
+		AEGfxGetPrintSize(m_font, restartMsg.c_str(), 1.0f, &restart_w, &restart_h);
+		f32 restart_x = -restart_w / 2.0f;
+		f32 restart_y = -0.1f; // 승리 메시지 아래
+
+		AEGfxPrint(m_font, restartMsg.c_str(), restart_x, restart_y, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f); 
 	}
-
-	AEGfxPrint(m_font, displayText.c_str(), textXPosition, textYPosition, currentTextScale, 1, 1, 1, 1);
+	break;
+	}
 }
 
 void PongGame::DrawRect(f32 x, f32 y, f32 w, f32 h, float r, float g, float b, float a, AEGfxTexture* pTex)

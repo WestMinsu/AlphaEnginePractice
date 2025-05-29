@@ -5,6 +5,13 @@
 #include <chrono>       
 #include <cmath> 
 
+enum class GameState
+{
+    MAIN_MENU, 
+    MAIN_GAME, 
+    RESULT,  
+};
+
 enum class PaddleHitType
 {
     kNone,
@@ -30,7 +37,7 @@ public:
 
 private:
     f64 m_elapsedTime;       
-    bool m_isGameRunning;         
+    GameState m_gameState;
     s8 m_font;     
     AEGfxVertexList* m_mesh;
     AEGfxTexture* m_pTex;
@@ -64,4 +71,5 @@ private:
     int m_player2Score;
 
     bool m_ballHitPaddleInitial;
+    std::string m_winMessage;
 };
