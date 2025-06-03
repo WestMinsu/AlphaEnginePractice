@@ -1,4 +1,4 @@
-#include "PongGame.h"
+#include "GameManager.h"
 #include "Constants.h"
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
@@ -16,15 +16,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     AESysInit(hInstance, nCmdShow, kGameWindowWidth, kGameWindowHeight, 1, 60, true, NULL);
     AESysSetWindowTitle("Pong");
     AEFrameRateControllerInit(60);
-    PongGame* pongGame = new PongGame(); 
+    GameManager* gameManager = new GameManager();
 
-    // Game Loop
     while (gGameRunning)
     {
         AESysFrameStart();
 
-        pongGame->Update((f32)AEFrameRateControllerGetFrameTime());
-        pongGame->Draw();
+        gameManager->Update((f32)AEFrameRateControllerGetFrameTime());
+        gameManager->Draw();
 
         AESysFrameEnd();
 
@@ -32,8 +31,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             gGameRunning = 0;
     }
 
-    delete pongGame;
-    pongGame = nullptr;
+    delete gameManager;
+    gameManager = nullptr;
 
     AESysExit();
 
