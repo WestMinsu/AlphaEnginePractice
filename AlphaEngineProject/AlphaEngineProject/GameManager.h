@@ -5,6 +5,7 @@
 #include <random>
 
 class IGameState; 
+class IntroState;
 class MainMenuState;
 class MainGameState;
 class AnimationState;
@@ -12,6 +13,7 @@ class ResultState;
 
 enum class GameState
 {
+    INTRO,
     MAIN_MENU,
     MAIN_GAME,
     ANIMATION,
@@ -48,6 +50,7 @@ public:
 
 private:
     IGameState* m_currentState;
+    IntroState* m_introState;
     MainMenuState* m_mainMenuState;
     MainGameState* m_mainGameState;
     AnimationState* m_animationState;

@@ -1,6 +1,7 @@
 #include "GameManager.h"
 #include "Constants.h"
 #include "AEUtil.h"
+#include "IntroState.h"
 #include "MainMenuState.h"
 #include "MainGameState.h"
 #include "AnimationState.h"
@@ -12,6 +13,7 @@ GameManager::GameManager()
     m_mesh(nullptr),
     m_pTex(nullptr),
     m_currentState(nullptr),
+    m_introState(new IntroState()),
     m_mainMenuState(new MainMenuState()),
     m_mainGameState(new MainGameState()),
     m_animationState(new AnimationState()),
@@ -20,12 +22,14 @@ GameManager::GameManager()
     m_font = AEGfxCreateFont("Assets/liberation-mono.ttf", 72);
 
     AEGfxMeshStart();
-    AEGfxVertexAdd(-0.5f, -0.5f, 0xFFFFFFFF, 0.0f, 0.0f);
-    AEGfxVertexAdd(0.5f, -0.5f, 0xFFFFFFFF, 1.0f, 0.0f);
-    AEGfxVertexAdd(-0.5f, 0.5f, 0xFFFFFFFF, 0.0f, 1.0f);
-    AEGfxVertexAdd(0.5f, -0.5f, 0xFFFFFFFF, 1.0f, 0.0f);
-    AEGfxVertexAdd(0.5f, 0.5f, 0xFFFFFFFF, 1.0f, 1.0f);
-    AEGfxVertexAdd(-0.5f, 0.5f, 0xFFFFFFFF, 0.0f, 1.0f);
+    AEGfxTriAdd(
+        -0.5f, -0.5f, 0xFFFFFFFF, 0.0f, 1.0f,
+        0.5f, -0.5f, 0xFFFFFFFF, 1.0f, 1.0f,
+        -0.5f, 0.5f, 0xFFFFFFFF, 0.0f, 0.0f);
+    AEGfxTriAdd(
+        0.5f, -0.5f, 0xFFFFFFFF, 1.0f, 1.0f,
+        0.5f, 0.5f, 0xFFFFFFFF, 1.0f, 0.0f,
+        -0.5f, 0.5f, 0xFFFFFFFF, 0.0f, 0.0f);
     m_mesh = AEGfxMeshEnd();
 
     m_jumpSound = AEAudioLoadSound("Assets/jump.wav");
@@ -52,7 +56,7 @@ GameManager::~GameManager()
 
 void GameManager::Initialize()
 {
-    ChangeState(GameState::MAIN_MENU);
+    ChangeState(GameState::INTRO);
 }
 
 void GameManager::Update(f32 dt)
@@ -75,6 +79,9 @@ void GameManager::ChangeState(GameState newState)
 
     switch (newState)
     {
+    case GameState::INTRO:
+        m_currentState = m_introState;
+        break;
     case GameState::MAIN_MENU:
         m_currentState = m_mainMenuState;
         break;
