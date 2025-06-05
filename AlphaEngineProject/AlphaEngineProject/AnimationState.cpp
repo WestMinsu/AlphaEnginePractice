@@ -1,79 +1,231 @@
 #include "AnimationState.h"
 #include "GameManager.h"
+#include <iostream>
 
 void AnimationState::Enter(GameManager* gameManager)
 {
-    if (gameManager->m_pTex)
-    {
-        AEGfxTextureUnload(gameManager->m_pTex);
-        gameManager->m_pTex = nullptr;
-    }
 
-    AEGfxMeshStart();
+	AEGfxMeshStart();
 
-    AEGfxTriAdd(
-        -0.5f, -0.5f, 0xFFFFFFFF, 0.0f, 1.0f,
-        0.5f, -0.5f, 0xFFFFFFFF, 0.125f, 1.0f,
-        -0.5f, 0.5f, 0xFFFFFFFF, 0.0f, 0.0f);
+	AEGfxTriAdd(
+		-0.5f, -0.5f, 0xFFFFFFFF, 0.0f, 1.0f,
+		0.5f, -0.5f, 0xFFFFFFFF, 0.125f, 1.0f,
+		-0.5f, 0.5f, 0xFFFFFFFF, 0.0f, 0.0f);
 
-    AEGfxTriAdd(
-        0.5f, -0.5f, 0xFFFFFFFF, 0.125f, 1.0f,
-        0.5f, 0.5f, 0xFFFFFFFF, 0.125f, 0.0f,
-        -0.5f, 0.5f, 0xFFFFFFFF, 0.0f, 0.0f);
+	AEGfxTriAdd(
+		0.5f, -0.5f, 0xFFFFFFFF, 0.125f, 1.0f,
+		0.5f, 0.5f, 0xFFFFFFFF, 0.125f, 0.0f,
+		-0.5f, 0.5f, 0xFFFFFFFF, 0.0f, 0.0f);
 
-    m_mesh = AEGfxMeshEnd();
-    gameManager->m_pTex = AEGfxTextureLoad("Assets/idle_right_down.png");
-    m_subImageIndex = 0;
+	m_mesh = AEGfxMeshEnd();
+	m_pTexIdle = AEGfxTextureLoad("Assets/idle_right_down.png");
+	m_pTexWalk = AEGfxTextureLoad("Assets/walk_right_down.png");
+	m_pTexJump = AEGfxTextureLoad("Assets/Jump_Right_Down.png");
+	m_pTexDeath = AEGfxTextureLoad("Assets/death_normal_right_down.png");
+	m_currentAnimState = CharacterAnimationState::IDLE;
+	m_currentDirection = CharacterDirection::RIGHT;
+	gameManager->m_pTex = m_pTexIdle;
+	m_subImageIndex = 0;
+	m_offset = 0.0f;
+	m_elapsedTime = 0.0f;
 }
+
 
 void AnimationState::Update(GameManager* gameManager, f32 dt)
 {
-    if (AEInputCheckTriggered(AEVK_R))
-    {
-        gameManager->ChangeState(GameState::MAIN_MENU);
-        return;
-    }
+	if (AEInputCheckTriggered(AEVK_R))
+	{
+		gameManager->ChangeState(GameState::MAIN_MENU);
+		return;
+	}
 
-    m_elapsedTime += dt;
-    if (m_elapsedTime >= 0.1f)
-    {
-        m_subImageIndex = (m_subImageIndex + 1) % 8;
-        m_offset = static_cast<f32>(m_subImageIndex) / 8;
-        m_elapsedTime = 0;
-    }
+	s32 totalFramesForCurrentAnim = 0;
+	switch (m_currentAnimState)
+	{
+	case CharacterAnimationState::IDLE:
+		totalFramesForCurrentAnim = m_idleFrames;
+		break;
+	case CharacterAnimationState::WALKING:
+		totalFramesForCurrentAnim = m_walkFrames;
+		break;
+	case CharacterAnimationState::JUMPING:
+		totalFramesForCurrentAnim = m_jumpFrames;
+		break;
+	case CharacterAnimationState::DYING:
+		totalFramesForCurrentAnim = m_deathFrames;
+		break;
+	}
+
+	if (m_currentAnimState == CharacterAnimationState::DYING && m_animationFinished)
+	{
+		m_deathTimer += dt;
+		if (m_deathTimer >= m_restartDelay)
+		{
+			m_currentAnimState = CharacterAnimationState::IDLE;
+			gameManager->m_pTex = m_pTexIdle;
+			m_subImageIndex = 0;
+			m_offset = 0.0f;
+			m_elapsedTime = 0.0f;
+			m_animationFinished = false;
+			m_deathTimer = 0.0f;
+		}
+		return;
+	}
+
+	if (m_currentAnimState == CharacterAnimationState::JUMPING && m_animationFinished)
+	{
+		m_currentAnimState = CharacterAnimationState::IDLE;
+		gameManager->m_pTex = m_pTexIdle;
+		m_subImageIndex = 0;
+		m_offset = 0.0f;
+		m_elapsedTime = 0.0f;
+		m_animationFinished = false;
+	}
+
+	if (m_currentAnimState != CharacterAnimationState::JUMPING &&
+		m_currentAnimState != CharacterAnimationState::DYING)
+	{
+		if (AEInputCheckCurr(AEVK_RIGHT))
+		{
+			if (m_currentAnimState != CharacterAnimationState::WALKING)
+			{
+				m_currentAnimState = CharacterAnimationState::WALKING;
+				gameManager->m_pTex = m_pTexWalk;
+				m_subImageIndex = 0;
+				m_offset = 0.0f;
+				m_elapsedTime = 0.0f;
+			}
+			m_currentDirection = CharacterDirection::RIGHT;
+		}
+		else if (AEInputCheckCurr(AEVK_LEFT))
+		{
+			if (m_currentAnimState != CharacterAnimationState::WALKING)
+			{
+				m_currentAnimState = CharacterAnimationState::WALKING;
+				gameManager->m_pTex = m_pTexWalk; 
+				m_subImageIndex = 0;
+				m_offset = 0.0f;
+				m_elapsedTime = 0.0f;
+			}
+			m_currentDirection = CharacterDirection::LEFT;
+		}
+		else if (AEInputCheckTriggered(AEVK_SPACE))
+		{
+			if (m_currentAnimState != CharacterAnimationState::JUMPING)
+			{
+				m_currentAnimState = CharacterAnimationState::JUMPING;
+				gameManager->m_pTex = m_pTexJump;
+				m_subImageIndex = 0;
+				m_offset = 0.0f;
+				m_elapsedTime = 0.0f;
+				m_animationFinished = false;
+			}
+		}
+		else if (AEInputCheckTriggered(AEVK_K))
+		{
+			if (m_currentAnimState != CharacterAnimationState::DYING)
+			{
+				m_currentAnimState = CharacterAnimationState::DYING;
+				gameManager->m_pTex = m_pTexDeath;
+				m_subImageIndex = 0;
+				m_offset = 0.0f;
+				m_elapsedTime = 0.0f;
+				m_animationFinished = false;
+				m_deathTimer = 0.0f;
+			}
+		}
+		else
+		{
+			if (m_currentAnimState != CharacterAnimationState::IDLE)
+			{
+				m_currentAnimState = CharacterAnimationState::IDLE;
+				gameManager->m_pTex = m_pTexIdle;
+				m_subImageIndex = 0;
+				m_offset = 0.0f;
+				m_elapsedTime = 0.0f;
+			}
+		}
+	}
+
+	m_elapsedTime += dt;
+	if (m_elapsedTime >= 0.1f) 
+	{
+		switch (m_currentAnimState)
+		{
+		case CharacterAnimationState::IDLE:
+			totalFramesForCurrentAnim = m_idleFrames;
+			break;
+		case CharacterAnimationState::WALKING:
+			totalFramesForCurrentAnim = m_walkFrames;
+			break;
+		case CharacterAnimationState::JUMPING:
+			totalFramesForCurrentAnim = m_jumpFrames;
+			break;
+		case CharacterAnimationState::DYING:
+			totalFramesForCurrentAnim = m_deathFrames;
+			break;
+		default:
+			totalFramesForCurrentAnim = 1;
+			break;
+		}
+
+		m_subImageIndex++;
+		if (m_subImageIndex >= totalFramesForCurrentAnim)
+		{
+			m_animationFinished = true;
+
+			if (m_currentAnimState == CharacterAnimationState::DYING)
+			{
+				m_subImageIndex = totalFramesForCurrentAnim - 1;
+			}
+			else 
+				m_subImageIndex = 0;
+		}
+		m_offset = static_cast<f32>(m_subImageIndex) / totalFramesForCurrentAnim;
+
+		m_elapsedTime = 0.0f;
+	}
 }
 
 void AnimationState::Draw(GameManager* gameManager)
 {
-    AEMtx33 scale = { 0 };
-    AEMtx33Scale(&scale, 500, 500);
+	f32 scaleX = 500.0f;
+	if (m_currentDirection == CharacterDirection::LEFT)
+		scaleX = -500.0f; 
 
-    AEMtx33 rotate = { 0 };
-    AEMtx33Rot(&rotate, 0);
+	AEMtx33 scale = { 0 };
+	AEMtx33Scale(&scale, scaleX, 500);
 
-    AEMtx33 translate = { 0 };
-    AEMtx33Trans(&translate, 0, 0);
+	AEMtx33 rotate = { 0 };
+	AEMtx33Rot(&rotate, 0);
 
-    AEMtx33 transform = { 0 };
-    AEMtx33Concat(&transform, &rotate, &scale);
-    AEMtx33Concat(&transform, &translate, &transform);
+	AEMtx33 translate = { 0 };
+	AEMtx33Trans(&translate, 0, 0);
 
-    AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
+	AEMtx33 transform = { 0 };
+	AEMtx33Concat(&transform, &rotate, &scale);
+	AEMtx33Concat(&transform, &translate, &transform);
 
-    AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
+	AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
 
-    AEGfxSetBlendMode(AE_GFX_BM_BLEND);
-    AEGfxSetTransparency(1.0f);
+	AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
 
-    AEGfxTextureSet(gameManager->m_pTex, m_offset, 0);
+	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+	AEGfxSetTransparency(1.0f);
 
-    AEGfxSetTransform(transform.m);
-    AEGfxMeshDraw(m_mesh, AE_GFX_MDM_TRIANGLES);
-    
+	AEGfxTextureSet(gameManager->m_pTex, m_offset, 0);
+
+	AEGfxSetTransform(transform.m);
+	AEGfxMeshDraw(m_mesh, AE_GFX_MDM_TRIANGLES);
+
 }
 
 void AnimationState::Exit(GameManager* gameManager)
 {
-    AEGfxMeshFree(m_mesh);
+	AEGfxMeshFree(m_mesh);
+	if (m_pTexIdle) AEGfxTextureUnload(m_pTexIdle);
+	if (m_pTexWalk) AEGfxTextureUnload(m_pTexWalk);
+	if (m_pTexJump) AEGfxTextureUnload(m_pTexJump);
+	if (m_pTexDeath) AEGfxTextureUnload(m_pTexDeath);
 }
 
