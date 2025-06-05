@@ -37,6 +37,7 @@ void MainGameState::Enter(GameManager* gameManager)
     m_player1Score = 0;
     m_player2Score = 0;
     m_elapsedTime = 0.0;
+    gameManager->m_pTex = AEGfxTextureLoad("Assets/PlanetTexture.png");
 }
 
 void MainGameState::Update(GameManager* gameManager, f32 dt)

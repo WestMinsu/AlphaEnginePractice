@@ -7,12 +7,14 @@
 class IGameState; 
 class MainMenuState;
 class MainGameState;
+class AnimationState;
 class ResultState;
 
 enum class GameState
 {
     MAIN_MENU,
     MAIN_GAME,
+    ANIMATION,
     RESULT,
 };
 
@@ -45,6 +47,7 @@ private:
     IGameState* m_currentState;
     MainMenuState* m_mainMenuState;
     MainGameState* m_mainGameState;
+    AnimationState* m_animationState;
     ResultState* m_resultState;
     AEGfxVertexList* m_mesh;
 };

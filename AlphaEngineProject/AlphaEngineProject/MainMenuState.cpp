@@ -24,11 +24,12 @@ void MainMenuState::Update(GameManager* gameManager, f32 dt)
 	AEInputGetCursorPosition(&pX, &pY);
 	pX -= 800;
 	pY = 450 - pY;
-	std::cout << "x = " << pX << "y = " << pY << std::endl;
 	if (AEInputCheckReleased(AEVK_LBUTTON))
 	{
-		if ((pongButtonX - buttonWidth / 2 <= pX && pX <= pongButtonY + buttonWidth / 2) && (pongButtonY - buttonHeight / 2 <= pY && pY <= pongButtonY + buttonHeight / 2))
+		if ((pongButtonX - buttonWidth / 2 <= pX && pX <= pongButtonX + buttonWidth / 2) && (pongButtonY - buttonHeight / 2 <= pY && pY <= pongButtonY + buttonHeight / 2))
 			gameManager->ChangeState(GameState::MAIN_GAME);
+		if ((animationButtonX - buttonWidth / 2 <= pX && pX <= animationButtonX + buttonWidth / 2) && (animationButtonY - buttonHeight / 2 <= pY && pY <= animationButtonY + buttonHeight / 2))
+			gameManager->ChangeState(GameState::ANIMATION);
 	}
 }
 

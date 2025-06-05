@@ -3,6 +3,7 @@
 #include "AEUtil.h"
 #include "MainMenuState.h"
 #include "MainGameState.h"
+#include "AnimationState.h"
 #include "ResultState.h"
 #include "IGameState.h" 
 
@@ -13,6 +14,7 @@ GameManager::GameManager()
     m_currentState(nullptr),
     m_mainMenuState(new MainMenuState()),
     m_mainGameState(new MainGameState()),
+    m_animationState(new AnimationState()),
     m_resultState(new ResultState())
 {
     m_font = AEGfxCreateFont("Assets/liberation-mono.ttf", 72);
@@ -25,8 +27,6 @@ GameManager::GameManager()
     AEGfxVertexAdd(0.5f, 0.5f, 0xFFFFFFFF, 1.0f, 1.0f);
     AEGfxVertexAdd(-0.5f, 0.5f, 0xFFFFFFFF, 0.0f, 1.0f);
     m_mesh = AEGfxMeshEnd();
-
-    m_pTex = AEGfxTextureLoad("Assets/PlanetTexture.png");
 
     Initialize();
 }
@@ -76,6 +76,9 @@ void GameManager::ChangeState(GameState newState)
         break;
     case GameState::MAIN_GAME:
         m_currentState = m_mainGameState;
+        break;
+    case GameState::ANIMATION:
+        m_currentState = m_animationState;
         break;
     case GameState::RESULT:
         m_currentState = m_resultState;

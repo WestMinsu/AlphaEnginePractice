@@ -10,4 +10,4 @@ inline const float kBallRadius = 20.0f;
 
 inline const int kInvalidFontHandle = -1;
 inline const f32 kPaddleMoveSpeed = 500.0f;
-inline const int kWinScore = 1;
+inline const int kWinScore = 11;

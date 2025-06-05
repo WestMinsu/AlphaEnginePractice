@@ -23,7 +23,7 @@ private:
      
     int m_player1Score;
     int m_player2Score;
-    f64 m_elapsedTime;
+    f32 m_elapsedTime;
 
     AELineSegment2 m_topWall;
     AELineSegment2 m_bottomWall;
