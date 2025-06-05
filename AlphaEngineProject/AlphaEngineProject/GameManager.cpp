@@ -28,6 +28,9 @@ GameManager::GameManager()
     AEGfxVertexAdd(-0.5f, 0.5f, 0xFFFFFFFF, 0.0f, 1.0f);
     m_mesh = AEGfxMeshEnd();
 
+    m_jumpSound = AEAudioLoadSound("Assets/jump.wav");
+    m_sfxGroup = AEAudioCreateGroup();
+
     Initialize();
 }
 
@@ -44,6 +47,7 @@ GameManager::~GameManager()
     delete m_mainMenuState;
     delete m_mainGameState;
     delete m_resultState;
+    delete m_animationState; 
 }
 
 void GameManager::Initialize()

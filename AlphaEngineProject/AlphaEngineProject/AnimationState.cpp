@@ -87,7 +87,7 @@ void AnimationState::Update(GameManager* gameManager, f32 dt)
 	if (m_currentAnimState != CharacterAnimationState::JUMP &&
 		m_currentAnimState != CharacterAnimationState::DEATH)
 	{
-		if (AEInputCheckCurr(AEVK_RIGHT))
+		if (!AEInputCheckCurr(AEVK_LEFT) && AEInputCheckCurr(AEVK_RIGHT))
 		{
 			if (m_currentAnimState != CharacterAnimationState::WALK)
 			{
@@ -100,7 +100,7 @@ void AnimationState::Update(GameManager* gameManager, f32 dt)
 			m_currentDirection = CharacterDirection::RIGHT;
 			m_characterPosition.x += m_characterSpeed * dt;
 		}
-		else if (AEInputCheckCurr(AEVK_LEFT))
+		else if (!AEInputCheckCurr(AEVK_RIGHT) && AEInputCheckCurr(AEVK_LEFT))
 		{
 			if (m_currentAnimState != CharacterAnimationState::WALK)
 			{
@@ -124,6 +124,7 @@ void AnimationState::Update(GameManager* gameManager, f32 dt)
 				m_elapsedTime = 0.0f;
 				m_animationFinished = false;
 			}
+			AEAudioPlay(gameManager->m_jumpSound, gameManager->m_sfxGroup, 1.0f, 1.0f, 0);
 		}
 		else if (AEInputCheckTriggered(AEVK_K))
 		{

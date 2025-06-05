@@ -43,6 +43,9 @@ public:
     AEGfxTexture* m_pTex;
     std::string m_winMessage;
 
+    AEAudio m_jumpSound;      
+    AEAudioGroup m_sfxGroup;  
+
 private:
     IGameState* m_currentState;
     MainMenuState* m_mainMenuState;
