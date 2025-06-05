@@ -48,11 +48,11 @@ void MainMenuState::Draw(GameManager* gameManager)
 	f32 animationButtonTextWidth, animationButtonTextHeight;
 	AEGfxGetPrintSize(gameManager->m_font, animationButtonText.c_str(), TextScale, &animationButtonTextWidth, &animationButtonTextHeight);
 
-	f32 pongTextX = 2 * pongButtonX / kGameWindowWidth - pongButtonTextWidth / 2;
-	f32 pongtextY = 2 * pongButtonY / kGameWindowHeight - pongButtonTextHeight / 2;
+	f32 pongTextX = 2 * pongButtonX / kWindowWidth - pongButtonTextWidth / 2;
+	f32 pongtextY = 2 * pongButtonY / kWindowHeight - pongButtonTextHeight / 2;
 
-	f32 animationTextX = 2 * animationButtonX / kGameWindowWidth - animationButtonTextWidth / 2;
-	f32 animationTextY = 2 * animationButtonY / kGameWindowHeight - animationButtonTextHeight / 2;
+	f32 animationTextX = 2 * animationButtonX / kWindowWidth - animationButtonTextWidth / 2;
+	f32 animationTextY = 2 * animationButtonY / kWindowHeight - animationButtonTextHeight / 2;
 
 	AEGfxPrint(gameManager->m_font, pongButtonText.c_str(), pongTextX, pongtextY, TextScale, 1, 1, 1, 1);
 	AEGfxPrint(gameManager->m_font, animationButtonText.c_str(), animationTextX, animationTextY, TextScale, 1, 1, 1, 1);

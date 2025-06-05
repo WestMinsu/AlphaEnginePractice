@@ -287,8 +287,8 @@ void MainGameState::Exit(GameManager* gameManager)
 
 void MainGameState::SetBallAndPaddles(GameManager* gameManager)
 {
-    m_player1Position = { -kGameWindowWidth / 3.0f, 0.f };
-    m_player2Position = { kGameWindowWidth / 3.0f, 0.f };
+    m_player1Position = { -kWindowWidth / 3.0f, 0.f };
+    m_player2Position = { kWindowWidth / 3.0f, 0.f };
     m_ballPosition = { 0.f, 0.f };
 
     f32 randomX = m_velocityDist(m_randomEngine);

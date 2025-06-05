@@ -5,9 +5,9 @@
 enum class CharacterAnimationState
 {
     IDLE,
-    WALKING,
-    JUMPING,
-    DYING
+    WALK,
+    JUMP,
+    DEATH
 };
 
 enum class CharacterDirection
@@ -48,6 +48,11 @@ private:
     bool m_animationFinished = false;
     f32 m_deathTimer;    
     const f32 m_restartDelay = 3.0f; 
+
+    f32 characterWidth = 500.0f;
+    f32 characterHeight = 500.0f;
+    AEVec2 m_characterPosition;
+    f32 m_characterSpeed = 300.0f;
 };
 
 

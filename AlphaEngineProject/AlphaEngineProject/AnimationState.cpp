@@ -1,10 +1,9 @@
 #include "AnimationState.h"
 #include "GameManager.h"
-#include <iostream>
+#include "Constants.h"
 
 void AnimationState::Enter(GameManager* gameManager)
 {
-
 	AEGfxMeshStart();
 
 	AEGfxTriAdd(
@@ -28,6 +27,7 @@ void AnimationState::Enter(GameManager* gameManager)
 	m_subImageIndex = 0;
 	m_offset = 0.0f;
 	m_elapsedTime = 0.0f;
+	m_characterPosition = { 0.0f, 0.0f };
 }
 
 
@@ -45,18 +45,18 @@ void AnimationState::Update(GameManager* gameManager, f32 dt)
 	case CharacterAnimationState::IDLE:
 		totalFramesForCurrentAnim = m_idleFrames;
 		break;
-	case CharacterAnimationState::WALKING:
+	case CharacterAnimationState::WALK:
 		totalFramesForCurrentAnim = m_walkFrames;
 		break;
-	case CharacterAnimationState::JUMPING:
+	case CharacterAnimationState::JUMP:
 		totalFramesForCurrentAnim = m_jumpFrames;
 		break;
-	case CharacterAnimationState::DYING:
+	case CharacterAnimationState::DEATH:
 		totalFramesForCurrentAnim = m_deathFrames;
 		break;
 	}
 
-	if (m_currentAnimState == CharacterAnimationState::DYING && m_animationFinished)
+	if (m_currentAnimState == CharacterAnimationState::DEATH && m_animationFinished)
 	{
 		m_deathTimer += dt;
 		if (m_deathTimer >= m_restartDelay)
@@ -68,11 +68,13 @@ void AnimationState::Update(GameManager* gameManager, f32 dt)
 			m_elapsedTime = 0.0f;
 			m_animationFinished = false;
 			m_deathTimer = 0.0f;
+			m_currentDirection = CharacterDirection::RIGHT;
+			m_characterPosition = { 0.0f, 0.0f };
 		}
 		return;
 	}
 
-	if (m_currentAnimState == CharacterAnimationState::JUMPING && m_animationFinished)
+	if (m_currentAnimState == CharacterAnimationState::JUMP && m_animationFinished)
 	{
 		m_currentAnimState = CharacterAnimationState::IDLE;
 		gameManager->m_pTex = m_pTexIdle;
@@ -82,38 +84,40 @@ void AnimationState::Update(GameManager* gameManager, f32 dt)
 		m_animationFinished = false;
 	}
 
-	if (m_currentAnimState != CharacterAnimationState::JUMPING &&
-		m_currentAnimState != CharacterAnimationState::DYING)
+	if (m_currentAnimState != CharacterAnimationState::JUMP &&
+		m_currentAnimState != CharacterAnimationState::DEATH)
 	{
 		if (AEInputCheckCurr(AEVK_RIGHT))
 		{
-			if (m_currentAnimState != CharacterAnimationState::WALKING)
+			if (m_currentAnimState != CharacterAnimationState::WALK)
 			{
-				m_currentAnimState = CharacterAnimationState::WALKING;
+				m_currentAnimState = CharacterAnimationState::WALK;
 				gameManager->m_pTex = m_pTexWalk;
 				m_subImageIndex = 0;
 				m_offset = 0.0f;
 				m_elapsedTime = 0.0f;
 			}
 			m_currentDirection = CharacterDirection::RIGHT;
+			m_characterPosition.x += m_characterSpeed * dt;
 		}
 		else if (AEInputCheckCurr(AEVK_LEFT))
 		{
-			if (m_currentAnimState != CharacterAnimationState::WALKING)
+			if (m_currentAnimState != CharacterAnimationState::WALK)
 			{
-				m_currentAnimState = CharacterAnimationState::WALKING;
+				m_currentAnimState = CharacterAnimationState::WALK;
 				gameManager->m_pTex = m_pTexWalk; 
 				m_subImageIndex = 0;
 				m_offset = 0.0f;
 				m_elapsedTime = 0.0f;
 			}
 			m_currentDirection = CharacterDirection::LEFT;
+			m_characterPosition.x -= m_characterSpeed * dt;
 		}
 		else if (AEInputCheckTriggered(AEVK_SPACE))
 		{
-			if (m_currentAnimState != CharacterAnimationState::JUMPING)
+			if (m_currentAnimState != CharacterAnimationState::JUMP)
 			{
-				m_currentAnimState = CharacterAnimationState::JUMPING;
+				m_currentAnimState = CharacterAnimationState::JUMP;
 				gameManager->m_pTex = m_pTexJump;
 				m_subImageIndex = 0;
 				m_offset = 0.0f;
@@ -123,9 +127,9 @@ void AnimationState::Update(GameManager* gameManager, f32 dt)
 		}
 		else if (AEInputCheckTriggered(AEVK_K))
 		{
-			if (m_currentAnimState != CharacterAnimationState::DYING)
+			if (m_currentAnimState != CharacterAnimationState::DEATH)
 			{
-				m_currentAnimState = CharacterAnimationState::DYING;
+				m_currentAnimState = CharacterAnimationState::DEATH;
 				gameManager->m_pTex = m_pTexDeath;
 				m_subImageIndex = 0;
 				m_offset = 0.0f;
@@ -147,6 +151,10 @@ void AnimationState::Update(GameManager* gameManager, f32 dt)
 		}
 	}
 
+	const f32 characterHalfWidth = characterWidth / 2.0f;
+	const f32 characterHalfHeight = characterHeight / 2.0f;
+	m_characterPosition.x = AEClamp(m_characterPosition.x, -kWindowWidth / 2.0f + characterHalfWidth, kWindowWidth / 2.0f - characterHalfWidth);
+
 	m_elapsedTime += dt;
 	if (m_elapsedTime >= 0.1f) 
 	{
@@ -155,13 +163,13 @@ void AnimationState::Update(GameManager* gameManager, f32 dt)
 		case CharacterAnimationState::IDLE:
 			totalFramesForCurrentAnim = m_idleFrames;
 			break;
-		case CharacterAnimationState::WALKING:
+		case CharacterAnimationState::WALK:
 			totalFramesForCurrentAnim = m_walkFrames;
 			break;
-		case CharacterAnimationState::JUMPING:
+		case CharacterAnimationState::JUMP:
 			totalFramesForCurrentAnim = m_jumpFrames;
 			break;
-		case CharacterAnimationState::DYING:
+		case CharacterAnimationState::DEATH:
 			totalFramesForCurrentAnim = m_deathFrames;
 			break;
 		default:
@@ -174,7 +182,7 @@ void AnimationState::Update(GameManager* gameManager, f32 dt)
 		{
 			m_animationFinished = true;
 
-			if (m_currentAnimState == CharacterAnimationState::DYING)
+			if (m_currentAnimState == CharacterAnimationState::DEATH)
 			{
 				m_subImageIndex = totalFramesForCurrentAnim - 1;
 			}
@@ -189,18 +197,17 @@ void AnimationState::Update(GameManager* gameManager, f32 dt)
 
 void AnimationState::Draw(GameManager* gameManager)
 {
-	f32 scaleX = 500.0f;
-	if (m_currentDirection == CharacterDirection::LEFT)
-		scaleX = -500.0f; 
-
 	AEMtx33 scale = { 0 };
-	AEMtx33Scale(&scale, scaleX, 500);
+	if (m_currentDirection == CharacterDirection::LEFT)
+		AEMtx33Scale(&scale, -characterWidth, characterHeight);
+	else
+		AEMtx33Scale(&scale, characterWidth, characterHeight);
 
 	AEMtx33 rotate = { 0 };
 	AEMtx33Rot(&rotate, 0);
 
 	AEMtx33 translate = { 0 };
-	AEMtx33Trans(&translate, 0, 0);
+	AEMtx33Trans(&translate, m_characterPosition.x, m_characterPosition.y);
 
 	AEMtx33 transform = { 0 };
 	AEMtx33Concat(&transform, &rotate, &scale);
@@ -228,4 +235,3 @@ void AnimationState::Exit(GameManager* gameManager)
 	if (m_pTexJump) AEGfxTextureUnload(m_pTexJump);
 	if (m_pTexDeath) AEGfxTextureUnload(m_pTexDeath);
 }
-

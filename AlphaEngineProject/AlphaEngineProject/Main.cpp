@@ -13,7 +13,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     int gGameRunning = 1;
 
-    AESysInit(hInstance, nCmdShow, kGameWindowWidth, kGameWindowHeight, 1, 60, true, NULL);
+    AESysInit(hInstance, nCmdShow, kWindowWidth, kWindowHeight, 1, 60, true, NULL);
     AESysSetWindowTitle("Pong");
     AEFrameRateControllerInit(60);
     GameManager* gameManager = new GameManager();
