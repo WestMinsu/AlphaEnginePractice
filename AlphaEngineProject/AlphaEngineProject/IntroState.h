@@ -12,4 +12,7 @@ public:
 
 private:
     AEGfxTexture* m_pTex;
+    f32 m_alphaTime; 
+    f32 m_alphaSpeed;
+    f32 m_currentAlpha;
 };
