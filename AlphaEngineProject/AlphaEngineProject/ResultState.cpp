@@ -11,7 +11,7 @@ void ResultState::Update(GameManager* gameManager, f32 dt)
 {
     if (AEInputCheckTriggered(AEVK_R))
     {
-        gameManager->Initialize();
+        gameManager->ChangeState(GameState::MAIN_MENU);
     }
 }
 

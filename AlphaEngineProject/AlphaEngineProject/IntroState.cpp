@@ -14,7 +14,6 @@ void IntroState::Update(GameManager* gameManager, f32 dt)
 {
 	m_alphaTime += dt * m_alphaSpeed;
 	m_currentAlpha = (sinf(m_alphaTime));
-	std::cout << m_currentAlpha << std::endl;
 	if (m_alphaTime >= PI)
 	{
 		gameManager->ChangeState(GameState::MAIN_MENU);

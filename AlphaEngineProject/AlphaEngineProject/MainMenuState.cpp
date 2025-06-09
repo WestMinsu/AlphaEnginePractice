@@ -3,6 +3,7 @@
 #include <string>
 #include "Constants.h"
 #include <iostream>
+#include "Utility.h"
 
 const f32 buttonWidth = 350.f;
 const f32 buttonHeight = 100.f;
@@ -22,8 +23,8 @@ void MainMenuState::Update(GameManager* gameManager, f32 dt)
 {
 	s32 pX, pY;
 	AEInputGetCursorPosition(&pX, &pY);
-	pX -= 800;
-	pY = 450 - pY;
+	pX -= static_cast<s32>(kHalfWindowWidth);
+	pY = static_cast<s32>(kHalfWindowHeight) - pY;
 	if (AEInputCheckReleased(AEVK_LBUTTON))
 	{
 		if ((pongButtonX - buttonWidth / 2 <= pX && pX <= pongButtonX + buttonWidth / 2) && (pongButtonY - buttonHeight / 2 <= pY && pY <= pongButtonY + buttonHeight / 2))
@@ -48,14 +49,11 @@ void MainMenuState::Draw(GameManager* gameManager)
 	f32 animationButtonTextWidth, animationButtonTextHeight;
 	AEGfxGetPrintSize(gameManager->m_font, animationButtonText.c_str(), TextScale, &animationButtonTextWidth, &animationButtonTextHeight);
 
-	f32 pongTextX = 2 * pongButtonX / kWindowWidth - pongButtonTextWidth / 2;
-	f32 pongtextY = 2 * pongButtonY / kWindowHeight - pongButtonTextHeight / 2;
+	AEVec2 pongTextCoordinate = ConvertPixelToNDC(pongButtonX, pongButtonY);
+	AEVec2 animationTextCoordinate = ConvertPixelToNDC(animationButtonX, animationButtonY);
 
-	f32 animationTextX = 2 * animationButtonX / kWindowWidth - animationButtonTextWidth / 2;
-	f32 animationTextY = 2 * animationButtonY / kWindowHeight - animationButtonTextHeight / 2;
-
-	AEGfxPrint(gameManager->m_font, pongButtonText.c_str(), pongTextX, pongtextY, TextScale, 1, 1, 1, 1);
-	AEGfxPrint(gameManager->m_font, animationButtonText.c_str(), animationTextX, animationTextY, TextScale, 1, 1, 1, 1);
+	AEGfxPrint(gameManager->m_font, pongButtonText.c_str(), pongTextCoordinate.x - pongButtonTextWidth / 2, pongTextCoordinate.y - pongButtonTextHeight / 2, TextScale, 1, 1, 1, 1);
+	AEGfxPrint(gameManager->m_font, animationButtonText.c_str(), animationTextCoordinate.x - animationButtonTextWidth / 2, animationTextCoordinate.y - animationButtonTextHeight / 2, TextScale, 1, 1, 1, 1);
 }
 
 void MainMenuState::Exit(GameManager* gameManager)
