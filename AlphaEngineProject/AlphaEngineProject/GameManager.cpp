@@ -93,12 +93,14 @@ void GameManager::ChangeState(GameState newState)
         break;
     case GameState::RESULT:
         m_currentState = m_resultState;
+        m_resultState->SetWinMessage(m_nextResultStateMessage);
         break;
     }
 
     if (m_currentState)
         m_currentState->Enter(this);
 }
+
 
 void GameManager::DrawRect(f32 x, f32 y, f32 w, f32 h, float r, float g, float b, float a, AEGfxTexture* pTex)
 {
@@ -129,4 +131,9 @@ void GameManager::DrawRect(f32 x, f32 y, f32 w, f32 h, float r, float g, float b
 
     AEGfxSetTransform(transform.m);
     AEGfxMeshDraw(m_mesh, AE_GFX_MDM_TRIANGLES);
+}
+
+void GameManager::SetNextResultStateMessage(const std::string& message)
+{
+    m_nextResultStateMessage = message; 
 }

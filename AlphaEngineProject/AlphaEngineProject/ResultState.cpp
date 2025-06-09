@@ -20,16 +20,20 @@ void ResultState::Draw(GameManager* gameManager)
     AEGfxSetBackgroundColor(0.1f, 0.1f, 0.1f);
 
     f32 win_w, win_h;
-    AEGfxGetPrintSize(gameManager->m_font, gameManager->m_winMessage.c_str(), 1.5f, &win_w, &win_h);
+    AEGfxGetPrintSize(gameManager->m_font, m_displayMessage.c_str(), 1.5f, &win_w, &win_h);
     f32 win_x = -win_w / 2.0f;
     f32 win_y = 0.1f;
 
-    if (gameManager->m_winMessage.find("PLAYER A") != std::string::npos) {
-        AEGfxPrint(gameManager->m_font, gameManager->m_winMessage.c_str(), win_x, win_y, 1.5f, 1.0f, 1.0f, 0.0f, 1.0f);
-    }
-    else {
-        AEGfxPrint(gameManager->m_font, gameManager->m_winMessage.c_str(), win_x, win_y, 1.5f, 0.0f, 1.0f, 1.0f, 1.0f);
-    }
+    if(m_displayMessage.find("PLAYER A") != std::string::npos)
+        AEGfxPrint(gameManager->m_font, m_displayMessage.c_str(), win_x, win_y, 1.5f, 1.0f, 1.0f, 0.0f, 1.0f);
+    else
+        AEGfxPrint(gameManager->m_font, m_displayMessage.c_str(), win_x, win_y, 1.5f, 0.0f, 1.0f, 1.0f, 1.0f);
+    //if (gameManager->m_winMessage.find("PLAYER A") != std::string::npos) {
+    //    AEGfxPrint(gameManager->m_font, gameManager->m_winMessage.c_str(), win_x, win_y, 1.5f, 1.0f, 1.0f, 0.0f, 1.0f);
+    //}
+    //else {
+    //    AEGfxPrint(gameManager->m_font, gameManager->m_winMessage.c_str(), win_x, win_y, 1.5f, 0.0f, 1.0f, 1.0f, 1.0f);
+    //}
 
     std::string restartMsg = "Press R to Restart";
     f32 restart_w, restart_h;
@@ -43,4 +47,9 @@ void ResultState::Draw(GameManager* gameManager)
 void ResultState::Exit(GameManager* gameManager)
 {
 
+}
+
+void ResultState::SetWinMessage(const std::string& message)
+{
+    m_displayMessage = message;
 }

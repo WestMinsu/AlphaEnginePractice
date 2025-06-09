@@ -106,7 +106,7 @@ void MainGameState::Update(GameManager* gameManager, f32 dt)
                 m_player1Score++;
                 if (m_player1Score >= kWinScore)
                 {
-                    gameManager->m_winMessage = "PLAYER A WINS!";
+                    gameManager->SetNextResultStateMessage("PLAYER A WINS!");
                     gameManager->ChangeState(GameState::RESULT);
                 }
             }
@@ -115,7 +115,7 @@ void MainGameState::Update(GameManager* gameManager, f32 dt)
                 m_player2Score++;
                 if (m_player2Score >= kWinScore)
                 {
-                    gameManager->m_winMessage = "PLAYER B WINS!";
+                    gameManager->SetNextResultStateMessage("PLAYER B WINS!");
                     gameManager->ChangeState(GameState::RESULT);
                 }
             }

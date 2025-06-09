@@ -41,6 +41,8 @@ public:
 
     void DrawRect(f32 x, f32 y, f32 w, f32 h, float r = 1.0f, float g = 1.0f, float b = 1.0f, float a = 1.0f, AEGfxTexture* pTex = nullptr);
 
+    void SetNextResultStateMessage(const std::string& message);
+
     s8 m_font;
     AEGfxTexture* m_pTex;
     std::string m_winMessage;
@@ -56,4 +58,5 @@ private:
     AnimationState* m_animationState;
     ResultState* m_resultState;
     AEGfxVertexList* m_mesh;
+    std::string m_nextResultStateMessage;
 };
