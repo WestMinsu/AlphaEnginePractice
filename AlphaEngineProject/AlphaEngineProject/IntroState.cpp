@@ -12,6 +12,9 @@ void IntroState::Enter(GameManager* gameManager)
 
 void IntroState::Update(GameManager* gameManager, f32 dt)
 {
+	if (AEInputCheckTriggered(AEVK_SPACE))
+		gameManager->ChangeState(GameState::MAIN_MENU);
+
 	m_alphaTime += dt * m_alphaSpeed;
 	m_currentAlpha = (sinf(m_alphaTime));
 	if (m_alphaTime >= PI)

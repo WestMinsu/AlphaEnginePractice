@@ -48,16 +48,14 @@ void MainGameState::Update(GameManager* gameManager, f32 dt)
         return;
     }
 
-    UpdatePaddleBoundaries(gameManager);
-
     s32 cursorX, cursorY;
     AEInputGetCursorPosition(&cursorX, &cursorY);
 
-    if ((m_player1Position.y + (cursorY - kHalfWindowHeight)) < -5)
+    if ((m_player1Position.y + (cursorY - kHalfWindowHeight)) < -5.0f)
     {
         m_player1Position.y += kPaddleMoveSpeed * dt;
     }
-    else if ((m_player1Position.y + (cursorY - kHalfWindowHeight)) > 5)
+    else if ((m_player1Position.y + (cursorY - kHalfWindowHeight)) > 5.0f)
     {
         m_player1Position.y -= kPaddleMoveSpeed * dt;
     }
@@ -179,38 +177,49 @@ void MainGameState::Update(GameManager* gameManager, f32 dt)
         }
     }
 
-    AELineSegment2* p1Paddles[] = {
-        &m_player1PaddleLeftEdge, &m_player1PaddleRightEdge,
-        &m_player1PaddleTopEdge, &m_player1PaddleBottomEdge
-    };
-    for (AELineSegment2* paddleEdge : p1Paddles)
+    f32 ballAABB_MinX = m_ballPosition.x - kBallRadius;
+    f32 ballAABB_MaxX = m_ballPosition.x + kBallRadius;
+    f32 ballAABB_MinY = m_ballPosition.y - kBallRadius;
+    f32 ballAABB_MaxY = m_ballPosition.y + kBallRadius;
+
+    f32 p1PaddleAABB_MinX = m_player1Position.x - kPaddleWidth / 2.0f;
+    f32 p1PaddleAABB_MaxX = m_player1Position.x + kPaddleWidth / 2.0f;
+    f32 p1PaddleAABB_MinY = m_player1Position.y - kPaddleHeight / 2.0f;
+    f32 p1PaddleAABB_MaxY = m_player1Position.y + kPaddleHeight / 2.0f;
+
+    f32 p2PaddleAABB_MinX = m_player2Position.x - kPaddleWidth / 2.0f;
+    f32 p2PaddleAABB_MaxX = m_player2Position.x + kPaddleWidth / 2.0f;
+    f32 p2PaddleAABB_MinY = m_player2Position.y - kPaddleHeight / 2.0f;
+    f32 p2PaddleAABB_MaxY = m_player2Position.y + kPaddleHeight / 2.0f;
+
+    CollisionResult p1AABBCollision = CheckPaddleAABBCollision(m_ballPosition, kBallRadius,
+        m_player1Position, kPaddleWidth, kPaddleHeight, PaddleHitType::kPlayer1);
+
+    if (p1AABBCollision.collided)
     {
-        collisionTime = AEAnimatedCircleToStaticLineSegment(&currentBallPos, &nextBallPos, kBallRadius, paddleEdge, &intersectionPoint);
-        if (collisionTime >= 0.0f && collisionTime < minCollisionTime)
-        {
-            minCollisionTime = collisionTime;
-            bestCollisionNormal = paddleEdge->mN;
-            collisionOccurred = true;
-            paddleHitType = PaddleHitType::kPlayer1;
-            paddleCenterY = m_player1Position.y;
-        }
+        m_ballPosition.x += p1AABBCollision.normal.x * p1AABBCollision.penetrationDepth;
+        m_ballPosition.y += p1AABBCollision.normal.y * p1AABBCollision.penetrationDepth;
+
+        minCollisionTime = 0.0f;
+        bestCollisionNormal = p1AABBCollision.normal;
+        collisionOccurred = true;
+        paddleHitType = p1AABBCollision.hitType;
+        paddleCenterY = p1AABBCollision.paddleCenterY;
     }
 
-    AELineSegment2* p2Paddles[] = {
-        &m_player2PaddleLeftEdge, &m_player2PaddleRightEdge,
-        &m_player2PaddleTopEdge, &m_player2PaddleBottomEdge
-    };
-    for (AELineSegment2* paddleEdge : p2Paddles)
+    CollisionResult p2AABBCollision = CheckPaddleAABBCollision(m_ballPosition, kBallRadius,
+        m_player2Position, kPaddleWidth, kPaddleHeight, PaddleHitType::kPlayer2);
+
+    if (p2AABBCollision.collided)
     {
-        collisionTime = AEAnimatedCircleToStaticLineSegment(&currentBallPos, &nextBallPos, kBallRadius, paddleEdge, &intersectionPoint);
-        if (collisionTime >= 0.0f && collisionTime < minCollisionTime)
-        {
-            minCollisionTime = collisionTime;
-            bestCollisionNormal = paddleEdge->mN;
-            collisionOccurred = true;
-            paddleHitType = PaddleHitType::kPlayer2;
-            paddleCenterY = m_player2Position.y;
-        }
+        m_ballPosition.x += p2AABBCollision.normal.x * p2AABBCollision.penetrationDepth;
+        m_ballPosition.y += p2AABBCollision.normal.y * p2AABBCollision.penetrationDepth;
+
+        minCollisionTime = 0.0f;
+        bestCollisionNormal = p2AABBCollision.normal;
+        collisionOccurred = true;
+        paddleHitType = p2AABBCollision.hitType;
+        paddleCenterY = p2AABBCollision.paddleCenterY;
     }
 
     if (collisionOccurred)
@@ -221,12 +230,7 @@ void MainGameState::Update(GameManager* gameManager, f32 dt)
 
         if (paddleHitType != PaddleHitType::kNone)
         {
-            AEVec2 finalCollisionBallPos = {
-                currentBallPos.x + m_ballVelocity.x * dt * minCollisionTime,
-                currentBallPos.y + m_ballVelocity.y * dt * minCollisionTime
-            };
-
-            float hitPointY = finalCollisionBallPos.y - paddleCenterY;
+            float hitPointY = m_ballPosition.y - paddleCenterY;
             float normalizedHitPointY = hitPointY / (kPaddleHeight / 2.0f);
             m_ballVelocity.y += normalizedHitPointY * m_ballSpeed * 0.5f;
         }
@@ -234,9 +238,11 @@ void MainGameState::Update(GameManager* gameManager, f32 dt)
         AEVec2Normalize(&m_ballVelocity, &m_ballVelocity);
         m_ballVelocity.x *= m_ballSpeed;
         m_ballVelocity.y *= m_ballSpeed;
-
-        m_ballPosition.x = currentBallPos.x + m_ballVelocity.x * dt * minCollisionTime;
-        m_ballPosition.y = currentBallPos.y + m_ballVelocity.y * dt * minCollisionTime;
+        if (minCollisionTime > 0.0f)
+        { 
+            m_ballPosition.x = currentBallPos.x + m_ballVelocity.x * dt * minCollisionTime;
+            m_ballPosition.y = currentBallPos.y + m_ballVelocity.y * dt * minCollisionTime;
+        }
     }
     else
     {
@@ -300,55 +306,87 @@ void MainGameState::SetBallAndPaddles(GameManager* gameManager)
     m_ballVelocity.y *= m_ballSpeed;
 }
 
-void MainGameState::UpdatePaddleBoundaries(GameManager* gameManager)
+MainGameState::CollisionResult MainGameState::CheckPaddleAABBCollision(
+    const AEVec2& ballPos,
+    f32 ballRadius,
+    const AEVec2& paddlePos,
+    f32 paddleWidth,
+    f32 paddleHeight,
+    PaddleHitType type
+)
 {
-    float p1LeftX = m_player1Position.x - kPaddleWidth / 2.0f;
-    float p1RightX = m_player1Position.x + kPaddleWidth / 2.0f;
-    float p1TopY = m_player1Position.y + kPaddleHeight / 2.0f;
-    float p1BottomY = m_player1Position.y - kPaddleHeight / 2.0f;
+    CollisionResult result;
 
-    m_player1PaddleLeftEdge.mP0 = { p1LeftX, p1BottomY };
-    m_player1PaddleLeftEdge.mP1 = { p1LeftX, p1TopY };
-    m_player1PaddleLeftEdge.mN = { -1.0f, 0.0f };
-    m_player1PaddleLeftEdge.mNdotP0 = AEVec2DotProduct(&m_player1PaddleLeftEdge.mN, &m_player1PaddleLeftEdge.mP0);
+    f32 ballMinX = ballPos.x - ballRadius;
+    f32 ballMaxX = ballPos.x + ballRadius;
+    f32 ballMinY = ballPos.y - ballRadius;
+    f32 ballMaxY = ballPos.y + ballRadius;
 
-    m_player1PaddleRightEdge.mP0 = { p1RightX, p1BottomY };
-    m_player1PaddleRightEdge.mP1 = { p1RightX, p1TopY };
-    m_player1PaddleRightEdge.mN = { 1.0f, 0.0f };
-    m_player1PaddleRightEdge.mNdotP0 = AEVec2DotProduct(&m_player1PaddleRightEdge.mN, &m_player1PaddleRightEdge.mP0);
+    f32 paddleMinX = paddlePos.x - paddleWidth / 2.0f;
+    f32 paddleMaxX = paddlePos.x + paddleWidth / 2.0f;
+    f32 paddleMinY = paddlePos.y - paddleHeight / 2.0f;
+    f32 paddleMaxY = paddlePos.y + paddleHeight / 2.0f;
 
-    m_player1PaddleTopEdge.mP0 = { p1LeftX, p1TopY };
-    m_player1PaddleTopEdge.mP1 = { p1RightX, p1TopY };
-    m_player1PaddleTopEdge.mN = { 0.0f, 1.0f };
-    m_player1PaddleTopEdge.mNdotP0 = AEVec2DotProduct(&m_player1PaddleTopEdge.mN, &m_player1PaddleTopEdge.mP0);
+    if (ballMaxX > paddleMinX && ballMinX < paddleMaxX &&
+        ballMaxY > paddleMinY && ballMinY < paddleMaxY)
+    {
+        result.collided = true;
+        result.hitType = type;
+        result.paddleCenterY = paddlePos.y;
 
-    m_player1PaddleBottomEdge.mP0 = { p1LeftX, p1BottomY };
-    m_player1PaddleBottomEdge.mP1 = { p1RightX, p1BottomY };
-    m_player1PaddleBottomEdge.mN = { 0.0f, -1.0f };
-    m_player1PaddleBottomEdge.mNdotP0 = AEVec2DotProduct(&m_player1PaddleBottomEdge.mN, &m_player1PaddleBottomEdge.mP0);
+        f32 overlapLeft = ballMaxX - paddleMinX;  
+        f32 overlapRight = paddleMaxX - ballMinX;
+        f32 overlapBottom = ballMaxY - paddleMinY; 
+        f32 overlapTop = paddleMaxY - ballMinY;   
 
-    float p2LeftX = m_player2Position.x - kPaddleWidth / 2.0f;
-    float p2RightX = m_player2Position.x + kPaddleWidth / 2.0f;
-    float p2TopY = m_player2Position.y + kPaddleHeight / 2.0f;
-    float p2BottomY = m_player2Position.y - kPaddleHeight / 2.0f;
-
-    m_player2PaddleLeftEdge.mP0 = { p2LeftX, p2BottomY };
-    m_player2PaddleLeftEdge.mP1 = { p2LeftX, p2TopY };
-    m_player2PaddleLeftEdge.mN = { -1.0f, 0.0f };
-    m_player2PaddleLeftEdge.mNdotP0 = AEVec2DotProduct(&m_player2PaddleLeftEdge.mN, &m_player2PaddleLeftEdge.mP0);
-
-    m_player2PaddleRightEdge.mP0 = { p2RightX, p2BottomY };
-    m_player2PaddleRightEdge.mP1 = { p2RightX, p2TopY };
-    m_player2PaddleRightEdge.mN = { 1.0f, 0.0f };
-    m_player2PaddleRightEdge.mNdotP0 = AEVec2DotProduct(&m_player2PaddleRightEdge.mN, &m_player2PaddleRightEdge.mP0);
-
-    m_player2PaddleTopEdge.mP0 = { p2LeftX, p2TopY };
-    m_player2PaddleTopEdge.mP1 = { p2RightX, p2TopY };
-    m_player2PaddleTopEdge.mN = { 0.0f, 1.0f };
-    m_player2PaddleTopEdge.mNdotP0 = AEVec2DotProduct(&m_player2PaddleTopEdge.mN, &m_player2PaddleTopEdge.mP0);
-
-    m_player2PaddleBottomEdge.mP0 = { p2LeftX, p2BottomY };
-    m_player2PaddleBottomEdge.mP1 = { p2RightX, p2BottomY };
-    m_player2PaddleBottomEdge.mN = { 0.0f, -1.0f };
-    m_player2PaddleBottomEdge.mNdotP0 = AEVec2DotProduct(&m_player2PaddleBottomEdge.mN, &m_player2PaddleBottomEdge.mP0);
+        if (type == PaddleHitType::kPlayer1)
+        {
+            if (overlapLeft < overlapRight && overlapLeft < overlapTop && overlapLeft < overlapBottom)
+            {
+                result.normal = { -1.0f, 0.0f };
+                result.penetrationDepth = overlapLeft;
+            }
+            else if (overlapRight < overlapTop && overlapRight < overlapBottom)
+            {
+                result.normal = { 1.0f, 0.0f }; 
+                result.penetrationDepth = overlapRight;
+            }
+            else if (overlapBottom < overlapTop)
+            {
+                result.normal = { 0.0f, -1.0f };
+                result.penetrationDepth = overlapBottom;
+            }
+            else
+            {
+                result.normal = { 0.0f, 1.0f };
+                result.penetrationDepth = overlapTop;
+            }
+        }
+        else if (type == PaddleHitType::kPlayer2)
+        {
+            if (overlapRight < overlapLeft && overlapRight < overlapTop && overlapRight < overlapBottom)
+            {
+                result.normal = { 1.0f, 0.0f }; 
+                result.penetrationDepth = overlapRight;
+            }
+            else if (overlapLeft < overlapTop && overlapLeft < overlapBottom)
+            {
+                result.normal = { -1.0f, 0.0f };
+                result.penetrationDepth = overlapLeft;
+            }
+            else if (overlapBottom < overlapTop)
+            {
+                result.normal = { 0.0f, -1.0f }; 
+                result.penetrationDepth = overlapBottom;
+            }
+            else
+            {
+                result.normal = { 0.0f, 1.0f }; 
+                result.penetrationDepth = overlapTop;
+            }
+        }
+    }
+    return result;
 }
+
+

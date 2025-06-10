@@ -2,7 +2,8 @@
 #include "IGameState.h"
 #include "AEEngine.h"
 #include <random>
-
+#include "Utility.h"
+#include "GameManager.h"
 class MainGameState : public IGameState 
 {
 public:
@@ -30,16 +31,23 @@ private:
     AELineSegment2 m_leftWall;
     AELineSegment2 m_rightWall;
 
-    AELineSegment2 m_player1PaddleLeftEdge;
-    AELineSegment2 m_player1PaddleRightEdge;
-    AELineSegment2 m_player1PaddleTopEdge;
-    AELineSegment2 m_player1PaddleBottomEdge;
-
-    AELineSegment2 m_player2PaddleLeftEdge;
-    AELineSegment2 m_player2PaddleRightEdge;
-    AELineSegment2 m_player2PaddleTopEdge;
-    AELineSegment2 m_player2PaddleBottomEdge;
-
     void SetBallAndPaddles(GameManager* gameManager);
-    void UpdatePaddleBoundaries(GameManager* gameManager);
+
+    struct CollisionResult
+    {
+        bool     collided = false;
+        AEVec2   normal = { 0.0f, 0.0f };
+        f32      penetrationDepth = 0.0f;
+        PaddleHitType hitType = PaddleHitType::kNone;
+        f32      paddleCenterY = 0.0f;
+    };
+
+    CollisionResult CheckPaddleAABBCollision(
+        const AEVec2& ballPos,
+        f32 ballRadius,
+        const AEVec2& paddlePos,
+        f32 paddleWidth,
+        f32 paddleHeight,
+        PaddleHitType type
+    );
 };
