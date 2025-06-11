@@ -1,63 +1,40 @@
-// ---------------------------------------------------------------------------
-// includes
-
-#include <crtdbg.h> // To check for memory leaks
-#include "AEEngine.h"
-
-
-
-// ---------------------------------------------------------------------------
-// main
+#include "GameManager.h"
+#include "Constants.h"
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
-	_In_opt_ HINSTANCE hPrevInstance,
-	_In_ LPWSTR    lpCmdLine,
-	_In_ int       nCmdShow)
+    _In_opt_ HINSTANCE hPrevInstance,
+    _In_ LPWSTR    lpCmdLine,
+    _In_ int       nCmdShow)
 {
-	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 
-	UNREFERENCED_PARAMETER(hPrevInstance);
-	UNREFERENCED_PARAMETER(lpCmdLine);
+    UNREFERENCED_PARAMETER(hPrevInstance);
+    UNREFERENCED_PARAMETER(lpCmdLine);
 
+    int gGameRunning = 1;
 
-	int gGameRunning = 1;
+    AESysInit(hInstance, nCmdShow, kWindowWidth, kWindowHeight, 1, 60, true, NULL);
+    AESysSetWindowTitle("Pong");
+    AEFrameRateControllerInit(60);
+    GameManager* gameManager = new GameManager();
 
-	// Initialization of your own variables go here
+    while (gGameRunning)
+    {
+        AESysFrameStart();
 
-	// Using custom window procedure
-	AESysInit(hInstance, nCmdShow, 1600, 900, 1, 60, false, NULL);
+        gameManager->Update((f32)AEFrameRateControllerGetFrameTime());
+        gameManager->Draw();
 
-	// Changing the window title
-	AESysSetWindowTitle("My New Demo!");
+        AESysFrameEnd();
 
-	// reset the system modules
-	AESysReset();
+        if (AEInputCheckTriggered(AEVK_ESCAPE) || 0 == AESysDoesWindowExist())
+            gGameRunning = 0;
+    }
 
-	printf("Hello World\n");
+    delete gameManager;
+    gameManager = nullptr;
 
-	// Game Loop
-	while (gGameRunning)
-	{
-		// Informing the system about the loop's start
-		AESysFrameStart();
+    AESysExit();
 
-		// Basic way to trigger exiting the application
-		// when ESCAPE is hit or when the window is closed
-		if (AEInputCheckTriggered(AEVK_ESCAPE) || 0 == AESysDoesWindowExist())
-			gGameRunning = 0;
-
-		// Your own update logic goes here
-
-
-		// Your own rendering logic goes here
-
-
-		// Informing the system about the loop's end
-		AESysFrameEnd();
-
-	}
-
-
-	// free the system
-	AESysExit();
+    return 0;
 }
